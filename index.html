@@ -3,168 +3,244 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Alkymistens Laboratorium</title>
+    <title>Alkymistens Mesterverk</title>
+    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
+    
     <style>
-        /* DESIGN OG UTSEENDE */
+        /* --- VISUELL STIL (CSS) --- */
+        :root {
+            --primary-color: #8e44ad; /* Lilla */
+            --accent-color: #2ecc71;  /* Giftig grønn */
+            --bg-color: #1a1a2e;      /* Mørk blåsort */
+            --text-color: #ecf0f1;
+            --cauldron-liquid: #27ae60;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #2c3e50;
-            color: white;
+            font-family: 'MedievalSharp', cursive; /* Fantasy font */
+            background: radial-gradient(circle at center, #2c3e50 0%, #000000 100%);
+            color: var(--text-color);
             text-align: center;
             margin: 0;
             padding: 0;
-            touch-action: manipulation; /* Forhindrer zooming på iPad */
+            height: 100vh;
+            overflow: hidden; /* Hindrer scrolling */
+            touch-action: manipulation;
         }
 
         #game-container {
-            max-width: 600px;
+            max-width: 700px;
             margin: 0 auto;
-            padding: 20px;
-            height: 100vh;
+            height: 100%;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            position: relative;
+            background-image: url('https://www.transparenttextures.com/patterns/dark-matter.png'); /* Lett tekstur */
         }
 
-        /* Startskjerm */
+        /* Felles skjerm-stil */
         .screen {
-            display: none; /* Skjuler alle skjermer som standard */
+            display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100%;
-        }
-
-        .active {
-            display: flex; /* Viser den aktive skjermen */
-        }
-
-        input {
-            padding: 15px;
-            font-size: 18px;
-            border-radius: 10px;
-            border: none;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        button {
-            background-color: #27ae60;
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            font-size: 20px;
-            border-radius: 10px;
-            cursor: pointer;
-            box-shadow: 0 4px #1e8449;
-            transition: all 0.1s;
-            margin: 5px;
-        }
-
-        button:active {
-            transform: translateY(4px);
-            box-shadow: 0 0 #1e8449;
-        }
-
-        button.ingredient {
-            background-color: #8e44ad;
-            box-shadow: 0 4px #6c3483;
-            width: 70px;
-            height: 70px;
-            font-size: 24px;
-            font-weight: bold;
-        }
-
-        button.action-btn {
-            background-color: #e67e22;
-            box-shadow: 0 4px #d35400;
-        }
-
-        button.clear-btn {
-            background-color: #c0392b;
-            box-shadow: 0 4px #922b21;
-        }
-
-        /* Spill-elementer */
-        .customer-bubble {
-            background-color: white;
-            color: #333;
             padding: 20px;
-            border-radius: 20px;
-            position: relative;
-            margin-bottom: 20px;
-            font-size: 22px;
-            font-weight: bold;
+            box-sizing: border-box;
+            animation: fadeIn 0.5s;
         }
-        
-        .customer-bubble:after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border: 20px solid transparent;
-            border-top-color: white;
-            border-bottom: 0;
-            margin-left: -20px;
-            margin-bottom: -20px;
-        }
+        .active { display: flex; }
 
-        .cauldron-area {
-            background: #34495e;
-            border-radius: 50%;
-            width: 200px;
-            height: 200px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 20px auto;
-            border: 5px solid #7f8c8d;
-            font-size: 40px;
-            color: #f1c40f;
-            flex-direction: column;
-        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        .cauldron-label {
-            font-size: 14px;
-            color: #bdc3c7;
-            margin-bottom: 5px;
-        }
-
-        .ingredients-rack {
-            background: rgba(0,0,0,0.2);
-            padding: 15px;
-            border-radius: 15px;
-        }
-
-        .status-bar {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            padding: 10px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 10px;
+        /* Overskrifter og tekst */
+        h1 {
+            font-size: 3rem;
+            color: var(--accent-color);
+            text-shadow: 0 0 10px var(--accent-color);
             margin-bottom: 10px;
         }
 
-        .feedback {
-            height: 30px;
-            color: #f1c40f;
+        /* Input felt */
+        input {
+            padding: 15px;
+            font-size: 20px;
+            border-radius: 10px;
+            border: 2px solid var(--primary-color);
+            background: rgba(0,0,0,0.5);
+            color: white;
+            text-align: center;
+            font-family: 'MedievalSharp', cursive;
+            margin-bottom: 20px;
+            width: 80%;
+        }
+
+        /* Vanskelighetsgrad-knapper */
+        .difficulty-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .diff-btn {
+            background: #34495e;
+            font-size: 16px;
+            padding: 10px;
+            opacity: 0.6;
+            border: 1px solid #7f8c8d;
+        }
+        .diff-btn.selected {
+            background: var(--primary-color);
+            opacity: 1;
+            border: 2px solid white;
+            box-shadow: 0 0 15px var(--primary-color);
+        }
+
+        /* Knapper generelt */
+        button {
+            font-family: 'MedievalSharp', cursive;
+            border: none;
+            padding: 15px 30px;
+            font-size: 22px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.1s;
+            color: white;
+            text-shadow: 1px 1px 0 #000;
+        }
+        
+        .start-btn {
+            background: linear-gradient(to bottom, #27ae60, #2ecc71);
+            box-shadow: 0 5px #1e8449;
+            width: 80%;
+        }
+
+        /* --- SPILLETS ELEMENTER --- */
+        
+        /* Oppdragstavle */
+        .quest-board {
+            background: url('https://img.freepik.com/free-vector/parchment-paper-texture_1048-11107.jpg?w=2000') no-repeat center;
+            background-size: cover;
+            color: #3e2723;
+            padding: 30px 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            width: 80%;
+            margin-top: 10px;
+            border: 4px solid #5d4037;
+            position: relative;
+        }
+        .quest-text {
+            font-size: 28px;
             font-weight: bold;
         }
 
-        /* Leaderboard styling */
-        .leaderboard-box {
-            background: rgba(255,255,255,0.1);
+        /* Den magiske gryta */
+        .cauldron-container {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            margin: 20px auto;
+        }
+
+        .cauldron {
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 30% 30%, #555, #000);
+            border-radius: 50%;
+            border: 6px solid #444;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        /* Væsken i gryta */
+        .liquid {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 80%; /* Hvor full gryta er */
+            background: var(--cauldron-liquid);
+            opacity: 0.8;
+            box-shadow: 0 0 20px var(--cauldron-liquid);
+            transition: height 0.3s;
+        }
+        
+        /* Bobler animasjon */
+        .bubble {
+            position: absolute;
+            bottom: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.4);
+            animation: rise 2s infinite ease-in;
+        }
+        @keyframes rise {
+            0% { bottom: 0; transform: scale(0.5); opacity: 0; }
+            50% { opacity: 1; }
+            100% { bottom: 90%; transform: scale(1.5); opacity: 0; }
+        }
+
+        /* Tallet oppi gryta */
+        .cauldron-number {
+            position: relative;
+            z-index: 2;
+            font-size: 48px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 0 10px #000;
+        }
+
+        /* Ingrediens-knapper (Runesteiner) */
+        .rune-pad {
+            background: rgba(0,0,0,0.6);
+            padding: 15px;
+            border-radius: 20px 20px 0 0;
+            width: 100%;
+            max-width: 700px;
+            border-top: 2px solid var(--primary-color);
+        }
+
+        .ingredient {
+            width: 75px;
+            height: 75px;
+            margin: 5px;
+            background: linear-gradient(135deg, #8e44ad, #9b59b6);
+            border-radius: 15px; /* Ser ut som steiner */
+            border: 2px solid #6c3483;
+            box-shadow: 0 6px #512e5f;
+            font-size: 32px;
+        }
+        .ingredient:active { transform: translateY(4px); box-shadow: 0 0; }
+
+        /* Handlingsknapper */
+        .controls { margin-top: 15px; display: flex; justify-content: center; gap: 15px; }
+        .btn-clear { background: #c0392b; box-shadow: 0 5px #922b21; }
+        .btn-mix { background: #e67e22; box-shadow: 0 5px #d35400; flex-grow: 1; max-width: 200px; }
+
+        /* Toppliste bok */
+        .leaderboard-container {
+            background: rgba(0,0,0,0.6);
             padding: 15px;
             border-radius: 10px;
+            width: 90%;
             margin-top: 20px;
-            width: 80%;
-            text-align: left;
+            border: 1px solid var(--accent-color);
         }
-        .leaderboard-box ol {
-            padding-left: 20px;
+        ol li { text-align: left; margin-bottom: 5px; font-size: 18px; color: #f1c40f; }
+
+        /* Hjelpe-tekst (Feedback) */
+        #feedback-msg {
+            height: 30px; 
+            margin: 10px; 
+            font-size: 20px; 
+            font-weight: bold;
+            color: var(--accent-color);
+            text-shadow: 0 0 5px black;
         }
 
     </style>
@@ -174,230 +250,31 @@
 <div id="game-container">
     
     <div id="start-screen" class="screen active">
-        <h1>⚗️ Alkymistens Lab ⚗️</h1>
-        <p>Skriv inn navnet ditt, lærling:</p>
-        <input type="text" id="player-name" placeholder="Ditt navn..." maxlength="12">
-        <button onclick="startGame()">Start Spillet</button>
+        <h1>⚗️ Alkymisten ⚗️</h1>
+        <p>Hvem brygger i dag?</p>
+        <input type="text" id="player-name" placeholder="Navn..." maxlength="10">
         
-        <div class="leaderboard-box">
-            <h3>🏆 Lokal Toppliste (på denne iPaden)</h3>
+        <p style="margin-bottom: 5px;">Velg vanskelighetsgrad:</p>
+        <div class="difficulty-selector">
+            <button class="diff-btn selected" id="diff-1" onclick="selectDifficulty(1)">Lærling</button>
+            <button class="diff-btn" id="diff-2" onclick="selectDifficulty(2)">Svenn</button>
+            <button class="diff-btn" id="diff-3" onclick="selectDifficulty(3)">Mester</button>
+        </div>
+
+        <button class="start-btn" onclick="startGame()">Start Brygging</button>
+        
+        <div class="leaderboard-container">
+            <h3>🏆 Hall of Fame (Lokal)</h3>
             <ol id="start-leaderboard"></ol>
         </div>
     </div>
 
     <div id="game-screen" class="screen">
-        <div class="status-bar">
-            <span id="display-name">Spiller: ...</span>
-            <span id="display-score">XP: 0</span>
-            <span id="display-level">Nivå: 1</span>
+        <div style="display: flex; justify-content: space-between; width: 100%; padding: 0 20px;">
+            <span>🧙‍♂️ <span id="disp-name">Navn</span></span>
+            <span style="color: gold">⭐ <span id="disp-xp">0</span> XP</span>
         </div>
 
-        <div class="customer-bubble">
-            <span id="quest-text">Jeg trenger eliksir 12!</span>
-        </div>
-
-        <div class="cauldron-area">
-            <span class="cauldron-label">I gryta nå:</span>
-            <span id="current-brew">1</span>
-        </div>
-        
-        <div id="feedback-msg" class="feedback"></div>
-
-        <div class="ingredients-rack">
-            <p>Tilsett ingredienser:</p>
-            <div>
-                <button class="ingredient" onclick="addIngredient(2)">2</button>
-                <button class="ingredient" onclick="addIngredient(3)">3</button>
-                <button class="ingredient" onclick="addIngredient(5)">5</button>
-                <button class="ingredient" id="btn-7" style="display:none;" onclick="addIngredient(7)">7</button>
-            </div>
-            <div style="margin-top: 15px;">
-                <button class="clear-btn" onclick="clearCauldron()">Tøm gryta</button>
-                <button class="action-btn" onclick="submitBrew()">BLAND!</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="end-screen" class="screen">
-        <h1>Tiden er ute!</h1>
-        <h2>Du fikk <span id="final-score" style="color: #f1c40f">0</span> XP</h2>
-        <p>Vis denne skjermen til læreren for å komme på tavla!</p>
-        <button onclick="goToStart()">Spill igjen</button>
-    </div>
-
-</div>
-
-<script>
-    // SPILLVARIABLER
-    let playerName = "";
-    let score = 0;
-    let currentBrew = 1;
-    let targetNumber = 0;
-    let level = 1;
-    let questionsAnswered = 0;
-    let maxQuestions = 10; // Hvor mange oppgaver før spillet er slutt?
-
-    // PRIMTALLSLISTE
-    const primes = [2, 3, 5, 7];
-
-    // OPPSTART
-    function init() {
-        updateLeaderboardDisplay();
-    }
-
-    function startGame() {
-        const inputName = document.getElementById('player-name').value;
-        if (inputName.trim() === "") {
-            alert("Du må skrive et navn!");
-            return;
-        }
-        playerName = inputName;
-        score = 0;
-        level = 1;
-        questionsAnswered = 0;
-        document.getElementById('display-name').innerText = "Alkymist: " + playerName;
-        
-        // Vis spillskjerm
-        switchScreen('game-screen');
-        newRound();
-    }
-
-    // NY RUNDE LOGIKK
-    function newRound() {
-        if (questionsAnswered >= maxQuestions) {
-            endGame();
-            return;
-        }
-
-        clearCauldron();
-        document.getElementById('display-score').innerText = "XP: " + score;
-        document.getElementById('display-level').innerText = "Nivå: " + level;
-        
-        // Vanskelighetsgrad
-        if (score > 100) level = 2;
-        if (score > 300) level = 3;
-
-        // Vis knapp 7 hvis nivå 2+
-        if (level >= 2) document.getElementById('btn-7').style.display = 'inline-block';
-        else document.getElementById('btn-7').style.display = 'none';
-
-        // Generer et tall basert på nivå
-        targetNumber = generateTarget(level);
-        
-        // Lag tekst
-        document.getElementById('quest-text').innerText = "Lag Eliksir " + targetNumber + "!";
-    }
-
-    function generateTarget(lvl) {
-        // Enkel logikk for å generere tall som KAN faktoriseres
-        let factors = [];
-        let limit = (lvl === 1) ? 3 : 4; // Hvor mange faktorer
-        let availablePrimes = (lvl === 1) ? [2, 3, 5] : [2, 3, 5, 7];
-
-        // Sørg for at vi har minst to faktorer
-        let numFactors = Math.floor(Math.random() * limit) + 2; 
-
-        let product = 1;
-        for (let i = 0; i < numFactors; i++) {
-            let p = availablePrimes[Math.floor(Math.random() * availablePrimes.length)];
-            // Unngå at tallet blir for stort (over 100 på nivå 1)
-            if (product * p > 100 && lvl === 1) break;
-            product *= p;
-        }
-        // Sikkerhetsnett: hvis produktet ved et uhell er primtall (skjer ikke med logikken over men greit å ha) eller for lite
-        if (product < 4) return 6; 
-        return product;
-    }
-
-    // SPILLER HANDLINGER
-    function addIngredient(p) {
-        currentBrew *= p;
-        updateCauldron();
-    }
-
-    function clearCauldron() {
-        currentBrew = 1;
-        updateCauldron();
-        setMessage("");
-    }
-
-    function updateCauldron() {
-        document.getElementById('current-brew').innerText = currentBrew;
-        // Visuell feedback hvis tallet blir for høyt
-        if (currentBrew > targetNumber) {
-            document.getElementById('current-brew').style.color = "#e74c3c"; // Rød
-        } else {
-            document.getElementById('current-brew').style.color = "#f1c40f"; // Gul
-        }
-    }
-
-    function submitBrew() {
-        if (currentBrew === targetNumber) {
-            // RIKTIG
-            let points = 10 * level;
-            score += points;
-            setMessage("✨ Perfekt! +" + points + " XP");
-            questionsAnswered++;
-            setTimeout(newRound, 1500); // Vent litt før neste
-        } else {
-            // FEIL
-            setMessage("💥 Oisann! Det ble " + currentBrew + ", ikke " + targetNumber);
-            document.getElementById('current-brew').style.color = "red";
-            score = Math.max(0, score - 5); // Minuspoeng men ikke under 0
-            document.getElementById('display-score').innerText = "XP: " + score;
-        }
-    }
-
-    function setMessage(msg) {
-        document.getElementById('feedback-msg').innerText = msg;
-    }
-
-    function switchScreen(id) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-    }
-
-    // AVSLUTT OG SCORE
-    function endGame() {
-        switchScreen('end-screen');
-        document.getElementById('final-score').innerText = score;
-        saveScore(playerName, score);
-    }
-
-    function goToStart() {
-        updateLeaderboardDisplay();
-        switchScreen('start-screen');
-    }
-
-    // LOKAL LAGRING (Local Storage)
-    function saveScore(name, score) {
-        let scores = JSON.parse(localStorage.getItem('alkymistScores')) || [];
-        scores.push({name: name, score: score});
-        scores.sort((a, b) => b.score - a.score); // Sorter høyest først
-        scores = scores.slice(0, 5); // Behold bare top 5
-        localStorage.setItem('alkymistScores', JSON.stringify(scores));
-    }
-
-    function updateLeaderboardDisplay() {
-        let scores = JSON.parse(localStorage.getItem('alkymistScores')) || [];
-        let list = document.getElementById('start-leaderboard');
-        list.innerHTML = "";
-        
-        if (scores.length === 0) {
-            list.innerHTML = "<li>Ingen mestere enda...</li>";
-        } else {
-            scores.forEach(s => {
-                let li = document.createElement('li');
-                li.innerText = s.name + " - " + s.score + " XP";
-                list.appendChild(li);
-            });
-        }
-    }
-
-    // Kjør ved start
-    init();
-
-</script>
-
-</body>
-</html>
+        <div class="quest-board">
+            <div style="text-transform: uppercase; font-size: 14px; opacity: 0.7;">Bestilling:</div>
+            <div id="quest-text" class
