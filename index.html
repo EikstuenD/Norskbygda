@@ -3,412 +3,490 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ord-Byggeren: Lær Norske Ord</title>
+    <title>Ord-Mesteren: Bygg Din Landsby</title>
     <style>
         :root {
-            --primary-color: #3498db;
-            --secondary-color: #2c3e50;
-            --accent-color: #f1c40f;
-            --success-color: #2ecc71;
-            --error-color: #e74c3c;
-            --bg-color: #ecf0f1;
-            --card-bg: #ffffff;
+            --bg-color: #f0f4f8;
+            --panel-bg: #ffffff;
+            --primary: #4a90e2;
+            --wood-color: #d35400;
+            --stone-color: #7f8c8d;
+            --gold-color: #f1c40f;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --text-main: #2c3e50;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             background-color: var(--bg-color);
-            color: var(--secondary-color);
+            color: var(--text-main);
             margin: 0;
-            padding: 20px;
+            height: 100vh;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
+            overflow: hidden; /* Hindre scrolling på hovedsiden */
         }
 
-        h1, h2 { text-align: center; }
-
-        .container {
-            background-color: var(--card-bg);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 600px;
-            text-align: center;
+        /* --- LAYOUT: SPLIT SCREEN --- */
+        #main-container {
+            display: flex;
+            flex: 1;
+            height: 100%;
         }
 
-        /* --- Buttons --- */
-        .btn {
-            display: inline-block;
-            padding: 12px 24px;
-            margin: 10px;
-            font-size: 18px;
-            font-weight: bold;
+        /* Left Panel: Tasks */
+        #task-panel {
+            flex: 1;
+            padding: 20px;
+            background-color: var(--panel-bg);
+            border-right: 2px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* Right Panel: Village */
+        #village-panel {
+            flex: 1;
+            background: linear-gradient(to bottom, #87CEEB 60%, #2ecc71 60%); /* Sky and Grass */
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        h2 { margin-top: 0; font-size: 1.5rem; }
+
+        /* --- RESOURCE BAR --- */
+        #resource-bar {
+            background: rgba(0,0,0,0.7);
             color: white;
-            background-color: var(--primary-color);
+            padding: 10px;
+            display: flex;
+            justify-content: space-around;
+            font-weight: bold;
+            font-size: 1.2rem;
+            z-index: 10;
+        }
+        .res-icon { margin-right: 5px; }
+
+        /* --- MISSION SELECTOR (New Feature) --- */
+        #mission-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        
+        .mission-card {
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 10px;
+            cursor: pointer;
+            text-align: center;
+            flex: 1;
+            transition: all 0.2s;
+            opacity: 0.6;
+        }
+        
+        .mission-card.active {
+            border-color: var(--primary);
+            background-color: #ebf5ff;
+            opacity: 1;
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        /* --- QUIZ AREA --- */
+        #quiz-area {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        #target-word {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin: 10px 0;
+        }
+
+        .btn-option {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            font-size: 1.2rem;
+            background-color: #eee;
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            transition: transform 0.2s, background-color 0.2s;
+            transition: background 0.2s;
+        }
+        .btn-option:hover { background-color: #ddd; }
+
+        .btn-speak {
+            background: none;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            margin-left: 10px;
         }
 
-        .btn:hover {
-            background-color: #2980b9;
-            transform: translateY(-2px);
+        /* --- VILLAGE GRID --- */
+        #village-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 10px;
+            padding: 20px;
+            height: 60%; /* Occupy bottom part (grass) */
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            box-sizing: border-box;
         }
 
-        .btn-menu { width: 80%; max-width: 300px; }
-        .btn-option { 
-            width: 100%; 
-            margin: 8px 0; 
-            background-color: var(--secondary-color);
-            font-size: 20px;
-        }
-        .btn-option:hover { background-color: #34495e; }
-        .btn-return { background-color: var(--success-color); }
-
-        /* --- Screens (visibility toggles) --- */
-        .screen { display: none; }
-        .active-screen { display: block; }
-
-        /* --- Game Screen Elements --- */
-        #score-display {
-            font-size: 24px;
-            color: var(--accent-color);
-            font-weight: bold;
-            margin-bottom: 20px;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-        }
-
-        #question-type { font-size: 1.2em; color: #7f8c8d; margin-bottom: 5px;}
-        #target-word {
-            font-size: 40px;
-            color: var(--primary-color);
-            margin: 10px 0 30px 0;
-            font-weight: 800;
-        }
-
-        #feedback-area {
-            height: 50px;
-            margin-top: 20px;
-            font-size: 22px;
-            font-weight: bold;
-        }
-        .correct-feedback { color: var(--success-color); }
-        .wrong-feedback { color: var(--error-color); }
-
-        /* --- Village (Reward) Screen --- */
-        #village-container {
-            height: 300px;
-            background-color: #8d6e63; /* Dirt ground */
-            border-radius: 10px;
-            margin: 20px 0;
-            position: relative;
-            overflow: hidden;
-            border-bottom: 20px solid #27ae60; /* Grass */
-            transition: all 0.5s ease;
+        .plot {
+            border: 2px dashed rgba(255,255,255,0.3);
+            border-radius: 5px;
             display: flex;
+            align-items: center;
             justify-content: center;
-            align-items: flex-end;
-            padding-bottom: 20px;
+            font-size: 3rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+            background-color: rgba(0,0,0,0.05);
+        }
+        .plot:hover { background-color: rgba(255,255,255,0.2); }
+        
+        /* Build Menu Overlay */
+        #build-menu {
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            width: 80%;
+            display: none; /* Hidden by default */
+            z-index: 100;
+        }
+        
+        .build-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+        }
+        .build-btn {
+            background-color: var(--success);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .build-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
         }
 
-        /* Simple CSS visualization of village growth using emojis */
-        .village-stage-0::after { content: "Trykk på knappen for å starte!"; color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);}
-        /* Stage 1: En liten hytte */
-        .village-stage-1 { background-color: #aed581 !important; /* More grass */ }
-        .village-stage-1::before { content: "🏠"; font-size: 80px; }
-        /* Stage 2: Hus og tre */
-        .village-stage-2 { background-color: #aed581 !important; }
-        .village-stage-2::before { content: "🏡🌳"; font-size: 90px; }
-        /* Stage 3: Flere bygg og vei */
-        .village-stage-3 { background-color: #aed581 !important; }
-        .village-stage-3::before { content: "🏡🛣️🏫🌳"; font-size: 100px; }
-        /* Stage 4: By */
-        .village-stage-4 { background-color: #81d4fa !important; /* Blue sky bg */ }
-        .village-stage-4::before { content: "🏢🚗🏥🌳🏙️"; font-size: 110px; }
-
-        #village-status-text { font-size: 1.5em; margin-bottom: 15px; }
-
+        /* --- Feedback & Animations --- */
+        #feedback {
+            height: 40px;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        /* Mobile tweak */
+        @media (max-width: 768px) {
+            #main-container { flex-direction: column; }
+            #task-panel { flex: 1; border-right: none; border-bottom: 2px solid #ddd; }
+            #village-panel { flex: 1; }
+            #village-grid { height: 100%; padding-top: 60px;} /* Full height on mobile bottom */
+        }
     </style>
 </head>
 <body>
 
-    <h1>Ord-Byggeren 🇳🇴</h1>
+    <div id="resource-bar">
+        <span>💰 Gull: <span id="res-gold">0</span></span>
+        <span>🪵 Treverk: <span id="res-wood">0</span></span>
+        <span>🪨 Stein: <span id="res-stone">0</span></span>
+    </div>
 
-    <div id="menu-screen" class="container screen active-screen">
-        <h2>Velg spillmodus</h2>
-        <p>Tjen gullmynter for å bygge landsbyen din!</p>
-        <button class="btn btn-menu" onclick="startGame('antonyms')">Antonymer (Motsatt)</button>
-        <br>
-        <button class="btn btn-menu" onclick="startGame('synonyms')">Synonymer (Likt)</button>
+    <div id="main-container">
         
-        <div id="village-preview" style="margin-top:30px;">
-             <h3>Din Landsby (Status)</h3>
-             <div id="village-container-mini" class="village-stage-0" style="height: 100px; background-color: #8d6e63; border-radius: 10px; display:flex; justify-content:center; align-items:flex-end; font-size: 50px;"></div>
+        <div id="task-panel">
+            <h2>👷 Arbeidsrommet</h2>
+            <p>Velg hva du vil jobbe for:</p>
+            
+            <div id="mission-selector">
+                <div class="mission-card active" onclick="setMission('wood')">
+                    <div style="font-size:2rem">🌲</div>
+                    <div>Skogen</div>
+                    <small>Få Treverk</small>
+                </div>
+                <div class="mission-card" onclick="setMission('stone')">
+                    <div style="font-size:2rem">⛏️</div>
+                    <div>Gruva</div>
+                    <small>Få Stein</small>
+                </div>
+                <div class="mission-card" onclick="setMission('gold')">
+                    <div style="font-size:2rem">⚖️</div>
+                    <div>Torget</div>
+                    <small>Få Gull</small>
+                </div>
+            </div>
+
+            <div id="quiz-area">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <span id="mode-label" style="background:#eee; padding:5px 10px; border-radius:5px; font-size:0.9rem;">Synonym</span>
+                    <button class="btn-option" style="width:auto; margin:0; padding:5px 15px; background:#ddd;" onclick="toggleMode()">Bytt modus ⟳</button>
+                </div>
+                
+                <p id="question-text">Hva betyr det samme som...</p>
+                
+                <div style="display:flex; align-items:center; justify-content:center;">
+                    <div id="target-word">ORDET</div>
+                    <button class="btn-speak" onclick="speakWord()" title="Les opp">🔊</button>
+                </div>
+
+                <div id="options-container">
+                    </div>
+                <div id="feedback"></div>
+            </div>
+        </div>
+
+        <div id="village-panel">
+            <button onclick="toggleBuildMenu()" style="position:absolute; top:10px; right:10px; z-index:20; padding:10px; background:white; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">🔨 Byggemeny</button>
+            
+            <div id="build-menu">
+                <h3>Velg hva du vil bygge</h3>
+                <div id="build-list">
+                    </div>
+                <button onclick="toggleBuildMenu()" style="margin-top:10px; width:100%; padding:10px;">Lukk</button>
+            </div>
+
+            <div id="village-grid">
+                <div class="plot" onclick="placeBuilding(0)"></div>
+                <div class="plot" onclick="placeBuilding(1)"></div>
+                <div class="plot" onclick="placeBuilding(2)"></div>
+                <div class="plot" onclick="placeBuilding(3)"></div>
+                <div class="plot" onclick="placeBuilding(4)"></div>
+                <div class="plot" onclick="placeBuilding(5)"></div>
+                <div class="plot" onclick="placeBuilding(6)"></div>
+                <div class="plot" onclick="placeBuilding(7)"></div>
+                <div class="plot" onclick="placeBuilding(8)"></div>
+                <div class="plot" onclick="placeBuilding(9)"></div>
+                <div class="plot" onclick="placeBuilding(10)"></div>
+                <div class="plot" onclick="placeBuilding(11)"></div>
+            </div>
         </div>
     </div>
 
-
-    <div id="game-screen" class="container screen">
-        <div id="score-display">💰 Gullmynter: <span id="score-count">0</span></div>
-        
-        <h3 id="question-type">Finn ordet som betyr det...</h3>
-        <h2 id="target-word">ORDET HER</h2>
-        
-        <div id="options-container">
-            </div>
-
-        <div id="feedback-area"></div>
-        
-        <button class="btn" id="next-btn" style="display:none;" onclick="nextQuestion()">Neste Ord 👉</button>
-    </div>
-
-
-    <div id="village-screen" class="container screen">
-        <h2>Gratulerer! Landsbyen vokser!</h2>
-        <p id="village-status-text">Du har nå en tom tomt.</p>
-        
-        <div id="village-container" class="village-stage-0">
-            </div>
-        
-        <p>Du trenger <span id="next-upgrade-cost">5</span> flere mynter for neste oppgradering.</p>
-        <button class="btn btn-return" onclick="returnToGame()">Fortsett å spille! ▶</button>
-    </div>
-
-
     <script>
-        // --- SPILLDATA (INNHOLD) ---
-        // Dette er tilpasset nybegynnere. Enkelt å utvide listen senere.
-        
-        const antonymsData = [
-            { word: "Stor", correct: "Liten", distractors: ["Kald", "Glad", "Høy"] },
-            { word: "Varm", correct: "Kald", distractors: ["Sulten", "Trist", "Våt"] },
-            { word: "Glad", correct: "Trist", distractors: ["Sint", "Trett", "Sulten"] },
-            { word: "Dag", correct: "Natt", distractors: ["Morgen", "Kveld", "Lys"] },
-            { word: "Opp", correct: "Ned", distractors: ["Frem", "Tilbake", "Ut"] },
-            { word: "Fort", correct: "Sakte", distractors: ["Høyt", "Lavt", "Langt"] },
-            { word: "Inn", correct: "Ut", distractors: ["Opp", "Ned", "Bort"] },
-            { word: "Ja", correct: "Nei", distractors: ["Kanskje", "Vet ikke", "Hei"] },
-            { word: "Svart", correct: "Hvit", distractors: ["Rød", "Blå", "Grønn"] },
-            { word: "Høy", correct: "Lav", distractors: ["Tynn", "Tjukk", "Bred"] },
-            { word: "Full", correct: "Tom", distractors: ["Halv", "Tung", "Lett"] },
-            { word: "Billig", correct: "Dyr", distractors: ["Fin", "Stygg", "Rik"] },
-            { word: "Tørr", correct: "Våt", distractors: ["Kald", "Varm", "Ren"] },
-            { word: "Ung", correct: "Gammel", distractors: ["Ny", "Voksen", "Barn"] },
-            { word: "Begynne", correct: "Slutte", distractors: ["Starte", "Vente", "Gå"] },
-            { word: "Kjærlighet", correct: "Hat", distractors: ["Vennskap", "Glede", "Frykt"] },
-            { word: "Mye", correct: "Lite", distractors: ["Mange", "Noen", "Ingen"] },
-            { word: "Vanskelig", correct: "Lett", distractors: ["Hardt", "Tungt", "Vondt"] },
-            { word: "Riktig", correct: "Galt", distractors: ["Sant", "Usant", "Bra"] },
-            { word: "Frisk", correct: "Syk", distractors: ["Trøtt", "Sterk", "Svak"] }
+        // --- DATA ---
+        const synonyms = [
+            { word: "Glad", correct: "Lykkelig", distractors: ["Sint", "Trist"] },
+            { word: "Liten", correct: "Små", distractors: ["Stor", "Høy"] },
+            { word: "Hjelpe", correct: "Bistå", distractors: ["Ødelegge", "Stoppe"] },
+            { word: "Venn", correct: "Kamerat", distractors: ["Fiende", "Fremmed"] },
+            { word: "Hus", correct: "Bolig", distractors: ["Bil", "Båt"] },
+            { word: "Rope", correct: "Skrike", distractors: ["Hviske", "Snakke"] },
+            { word: "Se", correct: "Kikke", distractors: ["Høre", "Lukte"] },
+            { word: "Gå", correct: "Spasere", distractors: ["Løpe", "Sitte"] },
+            { word: "Redd", correct: "Engstelig", distractors: ["Tøff", "Modig"] },
+            { word: "Gave", correct: "Presang", distractors: ["Brev", "Pakke"] }
         ];
 
-        const synonymsData = [
-            { word: "Glad", correct: "Lykkelig", distractors: ["Trist", "Sint", "Redd"] },
-            { word: "Fort", correct: "Raskt", distractors: ["Sakte", "Sent", "Stille"] },
-            { word: "Pen", correct: "Fin", distractors: ["Stygg", "Gammel", "Stor"] },
-            { word: "Liten", correct: "Små", distractors: ["Stor", "Høy", "Lang"] },
-            { word: "Hus", correct: "Bolig", distractors: ["Bil", "Skole", "Butikk"] },
-            { word: "Bil", correct: "Kjøretøy", distractors: ["Sykkel", "Båt", "Fly"] },
-            { word: "Venn", correct: "Kamerat", distractors: ["Fiende", "Nabo", "Lærer"] },
-            { word: "Se", correct: "Kikke", distractors: ["Høre", "Lukte", "Føle"] },
-            { word: "Gå", correct: "Spasere", distractors: ["Løpe", "Sitte", "Ligge"] },
-            { word: "Redd", correct: "Engstelig", distractors: ["Modig", "Tøff", "Sint"] },
-            { word: "Sinte", correct: "Rasende", distractors: ["Glade", "Triste", "Rolige"] },
-            { word: "Snakke", correct: "Prate", distractors: ["Rope", "Hviske", "Syngo"] },
-            { word: "Jobb", correct: "Arbeid", distractors: ["Ferie", "Skole", "Lek"] },
-            { word: "Vanskelig", correct: "Komplisert", distractors: ["Lett", "Enkelt", "Greit"] },
-            { word: "Rope", correct: "Skrike", distractors: ["Hviske", "Snakke", "Tenne"] },
-            { word: "Hjelpe", correct: "Bistå", distractors: ["Hindere", "Stoppe", "Ødelegge"] },
-            { word: "Start", correct: "Begynnelse", distractors: ["Slutt", "Ende", "Midt"] },
-            { word: "Gave", correct: "Presang", distractors: ["Brev", "Pakke", "Ting"] },
-            { word: "Stille", correct: "Rolig", distractors: ["Bråkete", "Høylytt", "Aktiv"] },
-            { word: "Våt", correct: "Fuktig", distractors: ["Tørr", "Varm", "Kald"] }
+        const antonyms = [
+            { word: "Varm", correct: "Kald", distractors: ["Sulten", "Våt"] },
+            { word: "Stor", correct: "Liten", distractors: ["Høy", "Bred"] },
+            { word: "Dag", correct: "Natt", distractors: ["Kveld", "Morgen"] },
+            { word: "Full", correct: "Tom", distractors: ["Halv", "Tung"] },
+            { word: "Billig", correct: "Dyr", distractors: ["Fin", "Rik"] },
+            { word: "Opp", correct: "Ned", distractors: ["Bort", "Inn"] },
+            { word: "Inn", correct: "Ut", distractors: ["Opp", "Fram"] },
+            { word: "Svart", correct: "Hvit", distractors: ["Rød", "Grønn"] },
+            { word: "Ung", correct: "Gammel", distractors: ["Ny", "Voksen"] },
+            { word: "Tørr", correct: "Våt", distractors: ["Kald", "Ren"] }
         ];
 
-        // --- SPILLTILSTAND (VARIABLES) ---
-        let score = 0;
-        let currentMode = ''; // 'antonyms' eller 'synonyms'
-        let questionPool = [];
-        let currentQuestionIndex = 0;
-        let villageLevel = 0; // 0 til 4
-        const upgradeThresholds = [5, 10, 15, 20]; // Poeng som trengs for å oppgradere
+        // --- GAME STATE ---
+        let resources = { gold: 0, wood: 0, stone: 0 };
+        let currentMission = 'wood'; // 'wood', 'stone', 'gold'
+        let currentMode = 'synonyms'; // 'synonyms' or 'antonyms'
+        let currentQuestion = {};
+        let selectedBuilding = null; // What we are trying to build
 
-        // DOM elementer
-        const menuScreen = document.getElementById('menu-screen');
-        const gameScreen = document.getElementById('game-screen');
-        const villageScreen = document.getElementById('village-screen');
-        const scoreCountSpan = document.getElementById('score-count');
-        const questionTypeTitle = document.getElementById('question-type');
-        const targetWordH2 = document.getElementById('target-word');
-        const optionsContainer = document.getElementById('options-container');
-        const feedbackArea = document.getElementById('feedback-area');
-        const nextBtn = document.getElementById('next-btn');
-        const villageContainerMain = document.getElementById('village-container');
-        const villageContainerMini = document.getElementById('village-container-mini');
-        const villageStatusText = document.getElementById('village-status-text');
-        const nextUpgradeCostSpan = document.getElementById('next-upgrade-cost');
+        // Building Types and Costs
+        const buildings = [
+            { id: 'tent', name: 'Lite Telt', icon: '⛺', cost: { wood: 2, gold: 0, stone: 0 } },
+            { id: 'cabin', name: 'Hytte', icon: '🏠', cost: { wood: 5, gold: 2, stone: 0 } },
+            { id: 'house', name: 'Bolighus', icon: '🏡', cost: { wood: 10, gold: 5, stone: 2 } },
+            { id: 'bakery', name: 'Bakeri', icon: '🥐', cost: { wood: 8, gold: 10, stone: 5 } },
+            { id: 'smith', name: 'Smed', icon: '⚔️', cost: { wood: 5, gold: 5, stone: 10 } },
+            { id: 'farm', name: 'Bondegård', icon: '🚜', cost: { wood: 15, gold: 10, stone: 5 } },
+            { id: 'park', name: 'Park', icon: '🌳', cost: { wood: 2, gold: 5, stone: 2 } },
+            { id: 'castle', name: 'Slott', icon: '🏰', cost: { wood: 50, gold: 50, stone: 50 } }
+        ];
 
-        // --- HJELPEFUNKSJONER ---
+        // --- INITIALIZATION ---
+        window.onload = function() {
+            nextQuestion();
+            updateUI();
+        };
 
-        // Blander en liste tilfeldig (Fisher-Yates shuffle)
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
+        // --- LOGIC: MISSION & QUIZ ---
+
+        function setMission(type) {
+            currentMission = type;
+            // Update Visuals
+            document.querySelectorAll('.mission-card').forEach(el => el.classList.remove('active'));
+            if(type === 'wood') document.querySelector('.mission-card:nth-child(1)').classList.add('active');
+            if(type === 'stone') document.querySelector('.mission-card:nth-child(2)').classList.add('active');
+            if(type === 'gold') document.querySelector('.mission-card:nth-child(3)').classList.add('active');
         }
 
-        // Viser en spesifikk skjerm og skjuler de andre
-        function showScreen(screenId) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
-            document.getElementById(screenId).classList.add('active-screen');
-        }
-
-        // Oppdaterer visningen av landsbyen basert på level
-        function updateVillageVisuals() {
-            // Fjern alle gamle stage-klasser
-            for(let i=0; i<=4; i++) {
-                villageContainerMain.classList.remove(`village-stage-${i}`);
-                villageContainerMini.classList.remove(`village-stage-${i}`);
-            }
-            // Legg til den gjeldende klassen
-            villageContainerMain.classList.add(`village-stage-${villageLevel}`);
-            villageContainerMini.classList.add(`village-stage-${villageLevel}`);
-
-            // Oppdater tekst
-            const texts = [
-                "Du har en tom tomt. Begynn å samle mynter!", // Level 0
-                "Du har bygget din første hytte! 🏠", // Level 1 (5 poeng)
-                "Landsbyen vokser med et hus og trær! 🏡🌳", // Level 2 (10 poeng)
-                "Se! Nå har du skole og vei! 🏫🛣️", // Level 3 (15 poeng)
-                "Gratulerer! Det er blitt en stor by! 🏢🏙️"  // Level 4 (20+ poeng)
-            ];
-            villageStatusText.innerText = texts[villageLevel] || texts[4];
-
-            // Vis hvor mange mynter til neste, hvis ikke maks level
-            if(villageLevel < 4) {
-                 nextUpgradeCostSpan.innerText = upgradeThresholds[villageLevel] - score;
-            } else {
-                 document.querySelector('#village-screen p:last-of-type').innerText = "Du har nådd maks nivå! Fortsett å øve for gøy.";
-            }
-        }
-
-
-        // --- HOVEDLOGIKK ---
-
-        function startGame(mode) {
-            currentMode = mode;
-            score = 0; // Reset score ved nytt spill hvis ønskelig, eller behold for lang progresjon
-            villageLevel = 0; // Reset village for nytt spill
-            currentQuestionIndex = 0;
-            scoreCountSpan.innerText = score;
-            updateVillageVisuals();
-
-            // Velg riktig datasett og bland rekkefølgen på spørsmålene
-            questionPool = (mode === 'antonyms') ? [...antonymsData] : [...synonymsData];
-            shuffleArray(questionPool);
-
-            // Sett overskriften
-            questionTypeTitle.innerText = (mode === 'antonyms') 
-                ? "Hva er det MOTSATTE av..." 
-                : "Hva betyr nesten det SAMME som...";
-
-            loadNextQuestion();
-            showScreen('game-screen');
-        }
-
-        function loadNextQuestion() {
-            feedbackArea.innerHTML = "";
-            nextBtn.style.display = "none";
-            optionsContainer.innerHTML = ""; // Tøm gamle knapper
-
-            // Sjekk om vi er tomme for spørsmål
-            if (currentQuestionIndex >= questionPool.length) {
-                targetWordH2.innerText = "Ferdig!";
-                feedbackArea.innerHTML = "<span style='color:var(--primary-color)'>Bra jobba! Du har klart alle ordene i denne runden. Gå tilbake til menyen.</span>";
-                nextBtn.innerText = "Til Menyen 🏠";
-                nextBtn.style.display = "inline-block";
-                nextBtn.onclick = () => showScreen('menu-screen');
-                return;
-            }
-
-            const currentQ = questionPool[currentQuestionIndex];
-            targetWordH2.innerText = currentQ.word;
-
-            // Lag en liste med alle alternativer (riktig + feil)
-            let options = [currentQ.correct, ...currentQ.distractors];
-            // Klipp listen så vi bare har 3 eller 4 alternativer totalt for å gjøre det enklere
-            options = options.slice(0, 3); 
-            shuffleArray(options); // Bland rekkefølgen på knappene
-
-            // Lag knapper for hvert alternativ
-            options.forEach(optionText => {
-                const btn = document.createElement('button');
-                btn.className = 'btn btn-option';
-                btn.innerText = optionText;
-                btn.onclick = () => checkAnswer(optionText, currentQ.correct, btn);
-                optionsContainer.appendChild(btn);
-            });
-        }
-
-        function checkAnswer(selected, correct, buttonElement) {
-            // Deaktiver alle knapper så man ikke kan trykke flere ganger
-            const allBtns = optionsContainer.querySelectorAll('button');
-            allBtns.forEach(b => b.disabled = true);
-
-            if (selected === correct) {
-                // RIKTIG SVAR
-                score++;
-                scoreCountSpan.innerText = score;
-                feedbackArea.innerHTML = "<span class='correct-feedback'>✨ Riktig! +1 Gullmynt ✨</span>";
-                buttonElement.style.backgroundColor = "var(--success-color)";
-                
-                // Sjekk om vi skal oppgradere landsbyen
-                checkForUpgrade();
-
-            } else {
-                // FEIL SVAR
-                feedbackArea.innerHTML = `<span class='wrong-feedback'>Ikke helt. Riktig var: "${correct}"</span>. Prøv neste!`;
-                buttonElement.style.backgroundColor = "var(--error-color)";
-                // Finn den riktige knappen og gjør den grønn for læring
-                allBtns.forEach(b => {
-                    if(b.innerText === correct) b.style.backgroundColor = "#95a5a6"; // En dus grønn/grå for å vise fasit
-                });
-                nextBtn.style.display = "inline-block";
-            }
-        }
-
-        function checkForUpgrade() {
-             // Sjekk om nåværende poengsum treffer en terskel
-            if (upgradeThresholds.includes(score)) {
-                villageLevel++;
-                updateVillageVisuals();
-                // Vent litt så de ser feedbacken, send så til landsbyen
-                setTimeout(() => {
-                     showScreen('village-screen');
-                }, 1500);
-            } else {
-                // Hvis ingen oppgradering, bare vis neste-knappen
-                nextBtn.style.display = "inline-block";
-            }
+        function toggleMode() {
+            currentMode = (currentMode === 'synonyms') ? 'antonyms' : 'synonyms';
+            document.getElementById('mode-label').innerText = (currentMode === 'synonyms') ? 'Synonym (Likt)' : 'Antonym (Motsatt)';
+            document.getElementById('question-text').innerText = (currentMode === 'synonyms') ? 'Hva betyr det samme som...' : 'Hva er det motsatte av...';
+            nextQuestion();
         }
 
         function nextQuestion() {
-            currentQuestionIndex++;
-            loadNextQuestion();
+            const pool = (currentMode === 'synonyms') ? synonyms : antonyms;
+            const randIndex = Math.floor(Math.random() * pool.length);
+            currentQuestion = pool[randIndex];
+
+            document.getElementById('target-word').innerText = currentQuestion.word;
+            document.getElementById('feedback').innerText = "";
+
+            const container = document.getElementById('options-container');
+            container.innerHTML = "";
+
+            let options = [currentQuestion.correct, ...currentQuestion.distractors];
+            options.sort(() => Math.random() - 0.5); // Shuffle
+
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-option';
+                btn.innerText = opt;
+                btn.onclick = () => checkAnswer(opt);
+                container.appendChild(btn);
+            });
         }
 
-        function returnToGame() {
-            nextQuestion();
-            showScreen('game-screen');
+        function checkAnswer(answer) {
+            const isCorrect = (answer === currentQuestion.correct);
+            const feedbackEl = document.getElementById('feedback');
+            
+            if (isCorrect) {
+                // Reward Logic
+                let rewardText = "";
+                if(currentMission === 'wood') { resources.wood += 2; rewardText = "+2 🪵"; }
+                if(currentMission === 'stone') { resources.stone += 2; rewardText = "+2 🪨"; }
+                if(currentMission === 'gold') { resources.gold += 5; rewardText = "+5 💰"; }
+                
+                feedbackEl.innerHTML = `<span style="color:var(--success)">Riktig! Du fikk ${rewardText}</span>`;
+                updateUI();
+                
+                // Wait slightly then next question
+                setTimeout(nextQuestion, 1500);
+            } else {
+                feedbackEl.innerHTML = `<span style="color:var(--danger)">Feil. Prøv igjen!</span>`;
+            }
         }
 
-        // Initialiser visningen ved start
-        updateVillageVisuals();
+        function speakWord() {
+            const msg = new SpeechSynthesisUtterance();
+            msg.text = currentQuestion.word;
+            msg.lang = 'no-NO';
+            window.speechSynthesis.speak(msg);
+        }
+
+        // --- LOGIC: BUILDING ---
+
+        function updateUI() {
+            document.getElementById('res-gold').innerText = resources.gold;
+            document.getElementById('res-wood').innerText = resources.wood;
+            document.getElementById('res-stone').innerText = resources.stone;
+            renderBuildList();
+        }
+
+        function toggleBuildMenu() {
+            const menu = document.getElementById('build-menu');
+            menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+            renderBuildList();
+        }
+
+        function renderBuildList() {
+            const list = document.getElementById('build-list');
+            list.innerHTML = "";
+            
+            buildings.forEach(b => {
+                const canAfford = (resources.wood >= b.cost.wood && resources.gold >= b.cost.gold && resources.stone >= b.cost.stone);
+                
+                const div = document.createElement('div');
+                div.className = 'build-item';
+                div.innerHTML = `
+                    <div>
+                        <span style="font-size:1.5rem">${b.icon}</span> 
+                        <strong>${b.name}</strong><br>
+                        <small>Tre: ${b.cost.wood} | Stein: ${b.cost.stone} | Gull: ${b.cost.gold}</small>
+                    </div>
+                    <button class="build-btn" ${canAfford ? '' : 'disabled'} onclick="selectBuilding('${b.id}')">
+                        ${canAfford ? 'Velg' : 'Mangler råd'}
+                    </button>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function selectBuilding(id) {
+            selectedBuilding = buildings.find(b => b.id === id);
+            toggleBuildMenu(); // Hide menu
+            alert(`Du valgte ${selectedBuilding.name}. Klikk på en ledig rute i gresset for å bygge!`);
+        }
+
+        function placeBuilding(plotIndex) {
+            if (!selectedBuilding) {
+                alert("Du må velge et bygg i menyen først!");
+                return;
+            }
+
+            // Deduct cost
+            if(resources.wood < selectedBuilding.cost.wood || resources.gold < selectedBuilding.cost.gold || resources.stone < selectedBuilding.cost.stone) {
+                alert("Du har brukt opp ressursene dine!");
+                selectedBuilding = null;
+                return;
+            }
+
+            resources.wood -= selectedBuilding.cost.wood;
+            resources.gold -= selectedBuilding.cost.gold;
+            resources.stone -= selectedBuilding.cost.stone;
+
+            // Place visual
+            const plots = document.querySelectorAll('.plot');
+            plots[plotIndex].innerText = selectedBuilding.icon;
+            plots[plotIndex].style.backgroundColor = "rgba(255,255,255,0.6)";
+            plots[plotIndex].onclick = null; // Prevent overwriting (simple version)
+
+            // Reset
+            selectedBuilding = null;
+            updateUI();
+        }
 
     </script>
 </body>
