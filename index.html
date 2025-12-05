@@ -6,16 +6,17 @@
     <title>Alkymistens Mesterverk</title>
     
     <style>
-        /* --- DESIGN (Kun CSS, ingen eksterne bilder) --- */
+        /* --- DESIGN --- */
         :root {
             --primary-color: #8e44ad;
             --accent-color: #2ecc71;
             --text-color: #ecf0f1;
-            --cauldron-liquid: #27ae60;
+            --bar-bg: #34495e;
+            --fire-color: #e67e22;
         }
 
         body {
-            font-family: 'Courier New', Courier, monospace; /* Trygg font */
+            font-family: 'Courier New', Courier, monospace;
             background: radial-gradient(circle at center, #2c3e50 0%, #000000 100%);
             color: var(--text-color);
             text-align: center;
@@ -34,200 +35,180 @@
             flex-direction: column;
             justify-content: space-between;
             position: relative;
+            padding-right: 40px; /* Plass til XP bar */
         }
 
-        /* Skjerm-håndtering */
+        /* --- UI ELEMENTER --- */
+        
+        /* XP Bar på høyre side */
+        .xp-sidebar {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 30px;
+            background: rgba(0,0,0,0.5);
+            border-left: 2px solid #555;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .xp-fill {
+            background: linear-gradient(to top, #27ae60, #2ecc71);
+            width: 100%;
+            height: 0%; /* Endres med JS */
+            transition: height 0.5s ease-out;
+            box-shadow: 0 0 10px var(--accent-color);
+        }
+
+        /* Toppmeny med Level og Total Score */
+        .top-hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background: rgba(0,0,0,0.3);
+            border-bottom: 1px solid #555;
+        }
+
+        .level-badge {
+            width: 50px; height: 50px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            border: 3px solid gold;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 0 10px gold;
+        }
+        .level-text { font-size: 10px; text-transform: uppercase; }
+        .level-num { font-size: 20px; }
+
+        .total-stats { text-align: left; }
+        .total-label { font-size: 10px; color: #bdc3c7; }
+        .total-val { font-size: 18px; color: #f1c40f; font-weight: bold; }
+
+        /* Combo teller */
+        .combo-box {
+            position: absolute;
+            top: 70px;
+            right: 50px; /* Til venstre for XP bar */
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--fire-color);
+            opacity: 0;
+            transition: opacity 0.3s;
+            text-shadow: 0 0 5px black;
+            z-index: 10;
+        }
+        .combo-active { opacity: 1; animation: pulse 0.5s infinite alternate; }
+        @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.1); } }
+
+        /* Startskjerm og knapper (Samme som før) */
         .screen {
-            display: none; /* Skjuler alle */
+            display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100%;
             padding: 20px;
-            box-sizing: border-box;
             width: 100%;
+            box-sizing: border-box;
         }
-        
-        /* Denne klassen gjør skjermen synlig */
         .active { display: flex !important; }
 
-        h1 { font-size: 2.5rem; color: var(--accent-color); margin-bottom: 10px; }
-
-        /* Input felt */
-        input {
-            padding: 15px;
-            font-size: 20px;
-            border-radius: 10px;
-            border: 2px solid var(--primary-color);
-            background: #fff;
-            color: #333;
-            text-align: center;
-            margin-bottom: 10px;
-            width: 80%;
-            max-width: 300px;
-        }
-
-        .error-msg {
-            color: #e74c3c;
-            font-weight: bold;
-            height: 25px;
-            margin-bottom: 10px;
-        }
-
-        /* Knapper */
-        .difficulty-selector { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center;}
+        input { padding: 15px; font-size: 20px; border-radius: 10px; border: 2px solid var(--primary-color); text-align: center; margin-bottom: 10px; width: 80%; }
         
-        .diff-btn {
-            background: #34495e;
-            color: white;
-            font-size: 16px;
-            padding: 10px;
-            border: 1px solid #7f8c8d;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .diff-btn.selected {
-            background: var(--primary-color);
-            border: 2px solid white;
-            box-shadow: 0 0 10px var(--primary-color);
-        }
+        .difficulty-selector { display: flex; gap: 10px; margin-bottom: 20px; }
+        .diff-btn { background: #34495e; color: white; padding: 10px; border: 1px solid #7f8c8d; border-radius: 5px; cursor: pointer; }
+        .diff-btn.selected { background: var(--primary-color); border: 2px solid white; }
 
-        button {
-            border: none;
-            padding: 15px 30px;
-            font-size: 22px;
-            border-radius: 12px;
-            cursor: pointer;
-            color: white;
-            font-weight: bold;
-        }
+        .start-btn { background: linear-gradient(to bottom, #27ae60, #2ecc71); border:none; padding: 15px 40px; font-size: 22px; border-radius: 10px; color: white; font-weight: bold; cursor: pointer; }
+
+        /* Spill Board */
+        .quest-board { background: #d35400; color: white; padding: 15px; border-radius: 10px; border: 2px solid #e67e22; width: 90%; margin-top: 10px; }
         
-        .start-btn {
-            background: linear-gradient(to bottom, #27ae60, #2ecc71);
-            box-shadow: 0 5px #1e8449;
-            width: 80%;
-            max-width: 300px;
-        }
-        .start-btn:active { transform: translateY(4px); box-shadow: 0 0; }
+        .cauldron-container { position: relative; width: 180px; height: 180px; margin: 10px auto; }
+        .cauldron { width: 100%; height: 100%; background: #333; border-radius: 50%; border: 5px solid #555; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+        .liquid { position: absolute; bottom: 0; left: 0; width: 100%; height: 80%; background: var(--accent-color); opacity: 0.8; transition: background 0.3s; }
+        .cauldron-number { position: relative; z-index: 2; font-size: 40px; font-weight: bold; color: #fff; text-shadow: 0 2px 4px #000; }
 
-        /* --- SPILLELEMENTER --- */
-        .quest-board {
-            background: #d35400;
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-            width: 90%;
-            margin-top: 10px;
-            border: 2px solid #e67e22;
-        }
-
-        .cauldron-container {
-            position: relative;
-            width: 200px;
-            height: 200px;
-            margin: 20px auto;
-        }
-
-        .cauldron {
-            width: 100%;
-            height: 100%;
-            background: #333;
-            border-radius: 50%;
-            border: 5px solid #555;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .liquid {
-            position: absolute;
-            bottom: 0; left: 0; width: 100%; height: 80%;
-            background: var(--cauldron-liquid);
-            opacity: 0.8;
-            transition: background 0.3s;
-        }
-        
-        .cauldron-number {
-            position: relative;
-            z-index: 2;
-            font-size: 48px;
-            font-weight: bold;
-            color: #fff;
-            text-shadow: 0 2px 4px #000;
-        }
-
-        .rune-pad {
-            background: rgba(255,255,255,0.1);
-            padding: 15px;
-            border-radius: 20px 20px 0 0;
-            width: 100%;
-            max-width: 700px;
-        }
-
-        .ingredient {
-            width: 70px; height: 70px; margin: 5px;
-            background: #8e44ad;
-            border-radius: 10px;
-            box-shadow: 0 4px #512e5f;
-            font-size: 28px;
-        }
+        /* Ingredienser */
+        .rune-pad { background: rgba(255,255,255,0.1); padding: 10px; border-radius: 20px 20px 0 0; width: 100%; }
+        .ingredient { width: 65px; height: 65px; margin: 5px; background: #8e44ad; border-radius: 10px; border:none; font-size: 24px; color:white; font-weight:bold; cursor:pointer; box-shadow: 0 4px #512e5f; }
         .ingredient:active { transform: translateY(4px); box-shadow: none; }
+        
+        .controls { margin-top: 10px; display: flex; justify-content: center; gap: 15px; }
+        .btn-clear { background: #c0392b; color: white; border:none; padding:10px 20px; border-radius:8px; font-size:18px; }
+        .btn-mix { background: #e67e22; color: white; border:none; padding:10px 40px; border-radius:8px; font-size:18px; font-weight:bold; }
 
-        .controls { margin-top: 15px; display: flex; justify-content: center; gap: 15px; }
-        .btn-clear { background: #c0392b; font-size: 18px; }
-        .btn-mix { background: #e67e22; flex-grow: 1; max-width: 200px; }
-
-        /* Leaderboard */
-        .leaderboard-container {
-            background: rgba(0,0,0,0.5);
-            padding: 10px;
-            border-radius: 10px;
-            width: 90%;
-            margin-top: 10px;
-            font-size: 14px;
-            text-align: left;
-        }
+        /* Feedback og Leaderboard */
+        #feedback-msg { height: 25px; font-weight:bold; color: #f1c40f; margin: 5px; }
+        .leaderboard-container { background: rgba(0,0,0,0.5); padding: 10px; border-radius: 10px; width: 90%; margin-top: 10px; font-size: 14px; text-align: left; }
         ol { padding-left: 25px; margin: 5px 0; }
         li { margin-bottom: 3px; color: #f1c40f; }
+
+        /* Level Up Overlay */
+        #levelup-overlay {
+            position: absolute; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            animation: popIn 0.5s;
+        }
+        @keyframes popIn { from {transform: scale(0);} to {transform: scale(1);} }
 
     </style>
 </head>
 <body>
 
+<div class="xp-sidebar">
+    <div class="xp-fill" id="xp-bar-fill"></div>
+</div>
+
 <div id="game-container">
     
+    <div class="top-hud" id="hud" style="display:none;">
+        <div class="total-stats">
+            <div class="total-label">TOTAL SCORE</div>
+            <div class="total-val" id="total-xp-display">0</div>
+        </div>
+        <div class="level-badge">
+            <span class="level-text">LEVEL</span>
+            <span class="level-num" id="level-display">1</span>
+        </div>
+    </div>
+
     <div id="start-screen" class="screen active">
         <h1>⚗️ Alkymisten</h1>
         <p>Skriv inn navnet ditt:</p>
         
         <form onsubmit="event.preventDefault(); startGame();" style="width:100%; display:flex; flex-direction:column; align-items:center;">
             <input type="text" id="player-name" placeholder="Navn..." maxlength="10" autocomplete="off">
-            <div id="start-error" class="error-msg"></div>
+            <div id="start-error" style="color:#e74c3c; height:20px; font-weight:bold;"></div>
             
-            <p style="margin-bottom: 5px;">Velg nivå:</p>
+            <p>Velg vanskelighetsgrad:</p>
             <div class="difficulty-selector">
                 <div class="diff-btn selected" id="diff-1" onclick="selectDifficulty(1)">Lærling</div>
                 <div class="diff-btn" id="diff-2" onclick="selectDifficulty(2)">Svenn</div>
                 <div class="diff-btn" id="diff-3" onclick="selectDifficulty(3)">Mester</div>
             </div>
 
-            <button type="submit" class="start-btn">START SPILLET</button>
+            <button type="submit" class="start-btn">START</button>
         </form>
         
         <div class="leaderboard-container">
-            <strong>Topp 5 (På denne iPaden):</strong>
+            <strong>🏆 Topp 5 (Runde-rekorder):</strong>
             <ol id="start-leaderboard"></ol>
         </div>
     </div>
 
     <div id="game-screen" class="screen">
-        <div style="display: flex; justify-content: space-between; width: 100%; padding: 0 20px;">
-            <span>👤 <span id="disp-name">Spiller</span></span>
-            <span style="color: gold">⭐ <span id="disp-xp">0</span></span>
-        </div>
+        <div id="combo-indicator" class="combo-box">COMBO x2!</div>
 
         <div class="quest-board">
             <div style="font-size: 14px; opacity: 0.8;">OPPDRAG:</div>
@@ -235,16 +216,16 @@
         </div>
 
         <div class="cauldron-container">
-            <div class="cauldron" id="cauldron-visual">
+            <div class="cauldron">
                 <div class="liquid" id="liquid"></div>
                 <div class="cauldron-number" id="current-brew">1</div>
             </div>
         </div>
 
-        <div id="feedback-msg" style="height: 30px; font-weight:bold; color: #f1c40f; margin: 10px;"></div>
+        <div id="feedback-msg"></div>
 
         <div class="rune-pad">
-            <div style="margin-bottom: 5px; font-size: 14px;">Ingredienser (Primtall):</div>
+            <div style="font-size: 14px; margin-bottom:5px;">Ingredienser:</div>
             <div>
                 <button class="ingredient" onclick="addIngredient(2)">2</button>
                 <button class="ingredient" onclick="addIngredient(3)">3</button>
@@ -258,14 +239,24 @@
         </div>
     </div>
 
+    <div id="levelup-overlay" onclick="closeLevelUp()">
+        <h1 style="color: gold; font-size: 40px; text-shadow: 0 0 20px orange;">LEVEL UP!</h1>
+        <h2 style="color: white;">Du er nå Level <span id="new-level-num">2</span></h2>
+        <p style="color: #ccc;">Trykk for å fortsette</p>
+    </div>
+
     <div id="end-screen" class="screen">
-        <h1 style="color:gold">Ferdig!</h1>
-        <p>Du fikk tittelen:</p>
-        <h2 id="final-title" style="color: var(--accent-color)">Novise</h2>
-        <div style="background: #333; padding: 20px; border-radius: 10px; margin: 20px;">
-            Poeng: <span id="final-score" style="font-size: 30px; color: gold;">0</span> XP
+        <h1 style="color:gold">Runde ferdig!</h1>
+        <p>Poeng denne runden:</p>
+        <h2 style="color: var(--accent-color); font-size: 40px;" id="round-score">0</h2>
+        
+        <div style="margin-top:20px;">
+            <p style="font-size:14px; color:#aaa;">Din Livstids-XP:</p>
+            <div id="end-total-xp" style="font-size:24px; color:white;">0</div>
         </div>
-        <button class="start-btn" onclick="goToStart()">Spill Igjen</button>
+
+        <br>
+        <button class="start-btn" onclick="goToStart()">Ny Runde</button>
     </div>
 
 </div>
@@ -273,56 +264,111 @@
 <script>
     // --- VARIABLER ---
     let playerName = "";
-    let score = 0;
+    
+    // Runde-stats
+    let roundScore = 0;
+    let roundsPlayed = 0;
+    const maxRounds = 10;
     let currentBrew = 1;
     let targetNumber = 0;
     let difficulty = 1;
-    let roundsPlayed = 0;
-    const maxRounds = 10;
     
-    // Kjør ved start
+    // Combo system
+    let comboStreak = 0;
+
+    // Langtids-stats (Lagres i LocalStorage)
+    let totalLifetimeXP = 0;
+    let playerLevel = 1;
+    let xpForNextLevel = 100;
+
+    // --- OPPSTART ---
+    loadLifetimeStats();
     updateLeaderboardDisplay();
 
-    // --- FUNKSJONER ---
+    // --- LOGIKK FOR LEVEL SYSTEM ---
+    function loadLifetimeStats() {
+        // Hent fra minnet
+        const savedXP = localStorage.getItem('alkymi_totalXP');
+        if (savedXP) {
+            totalLifetimeXP = parseInt(savedXP);
+        } else {
+            totalLifetimeXP = 0;
+        }
+        calculateLevel();
+        updateHUD();
+    }
+
+    function calculateLevel() {
+        // Enkel formel: Hvert level krever mer XP.
+        // Level 1: 0-100
+        // Level 2: 100-300 (200 diff)
+        // Level 3: 300-600 (300 diff)
+        
+        let level = 1;
+        let xpCounter = totalLifetimeXP;
+        let required = 100;
+
+        while (xpCounter >= required) {
+            xpCounter -= required; // Trekk fra det som trengs for dette nivået
+            level++;
+            required += 100; // Neste nivå krever 100 mer enn forrige
+        }
+
+        playerLevel = level;
+        xpForNextLevel = required; // Hvor mye som trengs TOTALT for neste nivå fra nåværende bunn
+        
+        // Oppdater progress bar
+        let percentage = (xpCounter / required) * 100;
+        document.getElementById('xp-bar-fill').style.height = percentage + "%";
+    }
+
+    function addXP(amount) {
+        // Sjekk om vi levler opp FØR vi legger til poeng
+        let oldLevel = playerLevel;
+        
+        totalLifetimeXP += amount;
+        roundScore += amount;
+        
+        // Lagre
+        localStorage.setItem('alkymi_totalXP', totalLifetimeXP);
+        
+        calculateLevel();
+        updateHUD();
+
+        // Hvis level økte
+        if (playerLevel > oldLevel) {
+            showLevelUpScreen(playerLevel);
+        }
+    }
+
+    function updateHUD() {
+        document.getElementById('total-xp-display').innerText = totalLifetimeXP;
+        document.getElementById('level-display').innerText = playerLevel;
+        document.getElementById('end-total-xp').innerText = totalLifetimeXP;
+    }
+
+    // --- SPILL FLYT ---
 
     function selectDifficulty(lvl) {
         difficulty = lvl;
-        // Fjern 'selected' fra alle, legg til på den valgte
         document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('selected'));
-        let btn = document.getElementById('diff-' + lvl);
-        if(btn) btn.classList.add('selected');
+        document.getElementById('diff-' + lvl).classList.add('selected');
     }
 
     function startGame() {
         const inputField = document.getElementById('player-name');
-        const errorField = document.getElementById('start-error');
-        
-        let val = inputField.value;
-        
-        if (!val || val.trim() === "") {
-            errorField.innerText = "⚠️ Du må skrive et navn!";
+        if (!inputField.value.trim()) {
+            document.getElementById('start-error').innerText = "Du må ha et navn!";
             return;
         }
-
-        // Hvis vi kom hit, er alt OK
-        errorField.innerText = "";
-        playerName = val.trim();
-        score = 0;
+        playerName = inputField.value.trim();
+        roundScore = 0;
         roundsPlayed = 0;
+        comboStreak = 0;
         
-        document.getElementById('disp-name').innerText = playerName;
-        
-        // Bytt skjerm
+        document.getElementById('hud').style.display = 'flex'; // Vis toppmeny
         switchScreen('game-screen');
         newRound();
-    }
-
-    function switchScreen(screenId) {
-        // Skjul alle skjermer
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        // Vis den valgte
-        const screen = document.getElementById(screenId);
-        if(screen) screen.classList.add('active');
     }
 
     function newRound() {
@@ -332,9 +378,22 @@
         }
         roundsPlayed++;
         clearCauldron();
-        document.getElementById('disp-xp').innerText = score;
+        
+        // Oppdater combo visuelt
+        let comboEl = document.getElementById('combo-indicator');
+        if (comboStreak > 1) {
+            let mult = (comboStreak >= 5) ? 3 : (comboStreak >= 3 ? 2 : 1);
+            if(mult > 1) {
+                comboEl.innerText = "COMBO x" + mult + "!";
+                comboEl.classList.add('combo-active');
+            } else {
+                comboEl.classList.remove('combo-active');
+            }
+        } else {
+            comboEl.classList.remove('combo-active');
+        }
 
-        // Vis 7-tallet kun på vanskeligere nivåer
+        // Vis 7-tallet
         let showSeven = (difficulty === 3) || (difficulty === 2 && roundsPlayed > 5);
         document.getElementById('btn-7').style.display = showSeven ? 'inline-block' : 'none';
 
@@ -343,33 +402,23 @@
     }
 
     function generateTarget() {
+        // Samme logikk som før
         let primes = [2, 3, 5];
         let maxVal = 50; 
         let minFactors = 2;
-        let maxFactors = 3; // Lærling: 2 eller 3 faktorer
+        let maxFactors = 3;
 
-        if (difficulty === 2) { // Svenn
-            maxVal = 100;
-            maxFactors = 4;
-        } 
-        else if (difficulty === 3) { // Mester
-            primes = [2, 3, 5, 7];
-            maxVal = 200;
-            maxFactors = 5;
-        }
+        if (difficulty === 2) { maxVal = 100; maxFactors = 4; } 
+        else if (difficulty === 3) { primes = [2, 3, 5, 7]; maxVal = 200; maxFactors = 5; }
 
         let product = 1;
-        // Tilfeldig antall faktorer
         let count = Math.floor(Math.random() * (maxFactors - minFactors + 1)) + minFactors;
         
         for(let i=0; i<count; i++) {
             let p = primes[Math.floor(Math.random() * primes.length)];
-            // Sjekk at vi ikke går over maksgrensen for nivået
             if (product * p > maxVal) break;
             product *= p;
         }
-        
-        // Sikring: Hvis tallet er for lite (f.eks. bare 2), prøv igjen eller sett til 6
         if (product < 4) return 6; 
         return product;
     }
@@ -383,16 +432,15 @@
         currentBrew = 1;
         updateCauldronDisplay();
         document.getElementById('feedback-msg').innerText = "";
-        document.getElementById('liquid').style.backgroundColor = "#27ae60"; // Grønn
+        document.getElementById('liquid').style.backgroundColor = "#2ecc71";
     }
 
     function updateCauldronDisplay() {
         const el = document.getElementById('current-brew');
         el.innerText = currentBrew;
-        
         if (currentBrew > targetNumber) {
-            el.style.color = "#e74c3c"; // Rød tekst
-            document.getElementById('liquid').style.backgroundColor = "#c0392b"; // Rød væske
+            el.style.color = "#e74c3c";
+            document.getElementById('liquid').style.backgroundColor = "#c0392b";
         } else {
             el.style.color = "white";
         }
@@ -401,32 +449,59 @@
     function submitBrew() {
         if (currentBrew === targetNumber) {
             // RIKTIG
-            let points = 10 * difficulty;
-            score += points;
-            document.getElementById('feedback-msg').innerText = "✨ RIKTIG! +" + points + " XP";
+            comboStreak++;
+            
+            // Beregn poeng med combo
+            let basePoints = 10 * difficulty;
+            let multiplier = 1;
+            if (comboStreak >= 3) multiplier = 2;
+            if (comboStreak >= 5) multiplier = 3;
+            
+            let totalWin = basePoints * multiplier;
+
+            // Feedback tekst
+            let msg = "✨ RIKTIG! +" + totalWin + " XP";
+            if(multiplier > 1) msg += " (Combo!)";
+            
+            document.getElementById('feedback-msg').innerText = msg;
             document.getElementById('feedback-msg').style.color = "#2ecc71";
-            document.getElementById('liquid').style.backgroundColor = "#f1c40f"; // Gull
+            document.getElementById('liquid').style.backgroundColor = "#f1c40f";
+
+            addXP(totalWin); // Legger til i totalen
+            
             setTimeout(newRound, 1200);
         } else {
             // FEIL
+            comboStreak = 0; // Mist combo
+            document.getElementById('combo-indicator').classList.remove('combo-active');
+            
             document.getElementById('feedback-msg').innerText = "💥 FEIL! Det ble " + currentBrew;
             document.getElementById('feedback-msg').style.color = "#e74c3c";
-            score = Math.max(0, score - 5);
-            document.getElementById('disp-xp').innerText = score;
+            
+            // Liten straff? (Trenger ikke trekke fra livstids-XP, bare poengsum for runden hvis man vil, men lar det være positivt fokus her)
         }
     }
 
-    function endGame() {
-        switchScreen('end-screen');
-        document.getElementById('final-score').innerText = score;
-        
-        let title = "Novise";
-        if (score > 100) title = "Lærling";
-        if (score > 200) title = "Heksemester";
-        if (score > 300) title = "Legende";
-        document.getElementById('final-title').innerText = title;
+    // --- SKJERM BYTTE ---
+    function switchScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
 
-        saveScore(playerName, score);
+    function showLevelUpScreen(lvl) {
+        document.getElementById('new-level-num').innerText = lvl;
+        document.getElementById('levelup-overlay').style.display = 'flex';
+    }
+
+    function closeLevelUp() {
+        document.getElementById('levelup-overlay').style.display = 'none';
+    }
+
+    function endGame() {
+        document.getElementById('hud').style.display = 'none'; // Skjul toppmeny
+        switchScreen('end-screen');
+        document.getElementById('round-score').innerText = roundScore;
+        saveRoundScore(playerName, roundScore);
     }
 
     function goToStart() {
@@ -434,31 +509,26 @@
         switchScreen('start-screen');
     }
 
-    // --- LAGRING ---
-    function saveScore(name, pts) {
-        let scores = JSON.parse(localStorage.getItem('alkymi_scores_v3')) || [];
+    // --- LEADERBOARD (Runde-basert) ---
+    function saveRoundScore(name, pts) {
+        let scores = JSON.parse(localStorage.getItem('alkymi_toplist')) || [];
         scores.push({name: name, score: pts});
         scores.sort((a, b) => b.score - a.score);
         scores = scores.slice(0, 5);
-        localStorage.setItem('alkymi_scores_v3', JSON.stringify(scores));
+        localStorage.setItem('alkymi_toplist', JSON.stringify(scores));
     }
 
     function updateLeaderboardDisplay() {
-        let scores = JSON.parse(localStorage.getItem('alkymi_scores_v3')) || [];
+        let scores = JSON.parse(localStorage.getItem('alkymi_toplist')) || [];
         let list = document.getElementById('start-leaderboard');
         list.innerHTML = "";
-        
-        if(scores.length === 0) {
-            list.innerHTML = "<li>Ingen poeng enda...</li>";
-        } else {
-            scores.forEach(s => {
-                let li = document.createElement('li');
-                li.innerText = s.name + ": " + s.score + " XP";
-                list.appendChild(li);
-            });
-        }
+        if(scores.length === 0) list.innerHTML = "<li>Ingen rekorder enda...</li>";
+        else scores.forEach(s => {
+            let li = document.createElement('li');
+            li.innerText = s.name + ": " + s.score + " poeng";
+            list.appendChild(li);
+        });
     }
-
 </script>
 
 </body>
