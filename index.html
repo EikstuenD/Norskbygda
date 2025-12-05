@@ -4,27 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Alkymistens Mesterverk</title>
-    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
     
     <style>
-        /* --- VISUELL STIL (CSS) --- */
+        /* --- DESIGN (Kun CSS, ingen eksterne bilder) --- */
         :root {
-            --primary-color: #8e44ad; /* Lilla */
-            --accent-color: #2ecc71;  /* Giftig grønn */
-            --bg-color: #1a1a2e;      /* Mørk blåsort */
+            --primary-color: #8e44ad;
+            --accent-color: #2ecc71;
             --text-color: #ecf0f1;
             --cauldron-liquid: #27ae60;
         }
 
         body {
-            font-family: 'MedievalSharp', cursive; /* Fantasy font */
+            font-family: 'Courier New', Courier, monospace; /* Trygg font */
             background: radial-gradient(circle at center, #2c3e50 0%, #000000 100%);
             color: var(--text-color);
             text-align: center;
             margin: 0;
             padding: 0;
             height: 100vh;
-            overflow: hidden; /* Hindrer scrolling */
+            overflow: hidden;
             touch-action: manipulation;
         }
 
@@ -36,31 +34,24 @@
             flex-direction: column;
             justify-content: space-between;
             position: relative;
-            background-image: url('https://www.transparenttextures.com/patterns/dark-matter.png'); /* Lett tekstur */
         }
 
-        /* Felles skjerm-stil */
+        /* Skjerm-håndtering */
         .screen {
-            display: none;
+            display: none; /* Skjuler alle */
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100%;
             padding: 20px;
             box-sizing: border-box;
-            animation: fadeIn 0.5s;
+            width: 100%;
         }
-        .active { display: flex; }
+        
+        /* Denne klassen gjør skjermen synlig */
+        .active { display: flex !important; }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* Overskrifter og tekst */
-        h1 {
-            font-size: 3rem;
-            color: var(--accent-color);
-            text-shadow: 0 0 10px var(--accent-color);
-            margin-bottom: 10px;
-        }
+        h1 { font-size: 2.5rem; color: var(--accent-color); margin-bottom: 10px; }
 
         /* Input felt */
         input {
@@ -68,180 +59,139 @@
             font-size: 20px;
             border-radius: 10px;
             border: 2px solid var(--primary-color);
-            background: rgba(0,0,0,0.5);
-            color: white;
+            background: #fff;
+            color: #333;
             text-align: center;
-            font-family: 'MedievalSharp', cursive;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             width: 80%;
+            max-width: 300px;
         }
 
-        /* Vanskelighetsgrad-knapper */
-        .difficulty-selector {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
+        .error-msg {
+            color: #e74c3c;
+            font-weight: bold;
+            height: 25px;
+            margin-bottom: 10px;
         }
+
+        /* Knapper */
+        .difficulty-selector { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center;}
+        
         .diff-btn {
             background: #34495e;
+            color: white;
             font-size: 16px;
             padding: 10px;
-            opacity: 0.6;
             border: 1px solid #7f8c8d;
+            border-radius: 5px;
+            cursor: pointer;
         }
         .diff-btn.selected {
             background: var(--primary-color);
-            opacity: 1;
             border: 2px solid white;
-            box-shadow: 0 0 15px var(--primary-color);
+            box-shadow: 0 0 10px var(--primary-color);
         }
 
-        /* Knapper generelt */
         button {
-            font-family: 'MedievalSharp', cursive;
             border: none;
             padding: 15px 30px;
             font-size: 22px;
             border-radius: 12px;
             cursor: pointer;
-            transition: all 0.1s;
             color: white;
-            text-shadow: 1px 1px 0 #000;
+            font-weight: bold;
         }
         
         .start-btn {
             background: linear-gradient(to bottom, #27ae60, #2ecc71);
             box-shadow: 0 5px #1e8449;
             width: 80%;
+            max-width: 300px;
         }
+        .start-btn:active { transform: translateY(4px); box-shadow: 0 0; }
 
-        /* --- SPILLETS ELEMENTER --- */
-        
-        /* Oppdragstavle */
+        /* --- SPILLELEMENTER --- */
         .quest-board {
-            background: url('https://img.freepik.com/free-vector/parchment-paper-texture_1048-11107.jpg?w=2000') no-repeat center;
-            background-size: cover;
-            color: #3e2723;
-            padding: 30px 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.8);
-            width: 80%;
+            background: #d35400;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            width: 90%;
             margin-top: 10px;
-            border: 4px solid #5d4037;
-            position: relative;
-        }
-        .quest-text {
-            font-size: 28px;
-            font-weight: bold;
+            border: 2px solid #e67e22;
         }
 
-        /* Den magiske gryta */
         .cauldron-container {
             position: relative;
-            width: 220px;
-            height: 220px;
+            width: 200px;
+            height: 200px;
             margin: 20px auto;
         }
 
         .cauldron {
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at 30% 30%, #555, #000);
+            background: #333;
             border-radius: 50%;
-            border: 6px solid #444;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.6);
+            border: 5px solid #555;
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
             overflow: hidden;
-            z-index: 1;
         }
 
-        /* Væsken i gryta */
         .liquid {
             position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 80%; /* Hvor full gryta er */
+            bottom: 0; left: 0; width: 100%; height: 80%;
             background: var(--cauldron-liquid);
             opacity: 0.8;
-            box-shadow: 0 0 20px var(--cauldron-liquid);
-            transition: height 0.3s;
+            transition: background 0.3s;
         }
         
-        /* Bobler animasjon */
-        .bubble {
-            position: absolute;
-            bottom: 0;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.4);
-            animation: rise 2s infinite ease-in;
-        }
-        @keyframes rise {
-            0% { bottom: 0; transform: scale(0.5); opacity: 0; }
-            50% { opacity: 1; }
-            100% { bottom: 90%; transform: scale(1.5); opacity: 0; }
-        }
-
-        /* Tallet oppi gryta */
         .cauldron-number {
             position: relative;
             z-index: 2;
             font-size: 48px;
             font-weight: bold;
             color: #fff;
-            text-shadow: 0 0 10px #000;
+            text-shadow: 0 2px 4px #000;
         }
 
-        /* Ingrediens-knapper (Runesteiner) */
         .rune-pad {
-            background: rgba(0,0,0,0.6);
+            background: rgba(255,255,255,0.1);
             padding: 15px;
             border-radius: 20px 20px 0 0;
             width: 100%;
             max-width: 700px;
-            border-top: 2px solid var(--primary-color);
         }
 
         .ingredient {
-            width: 75px;
-            height: 75px;
-            margin: 5px;
-            background: linear-gradient(135deg, #8e44ad, #9b59b6);
-            border-radius: 15px; /* Ser ut som steiner */
-            border: 2px solid #6c3483;
-            box-shadow: 0 6px #512e5f;
-            font-size: 32px;
+            width: 70px; height: 70px; margin: 5px;
+            background: #8e44ad;
+            border-radius: 10px;
+            box-shadow: 0 4px #512e5f;
+            font-size: 28px;
         }
-        .ingredient:active { transform: translateY(4px); box-shadow: 0 0; }
+        .ingredient:active { transform: translateY(4px); box-shadow: none; }
 
-        /* Handlingsknapper */
         .controls { margin-top: 15px; display: flex; justify-content: center; gap: 15px; }
-        .btn-clear { background: #c0392b; box-shadow: 0 5px #922b21; }
-        .btn-mix { background: #e67e22; box-shadow: 0 5px #d35400; flex-grow: 1; max-width: 200px; }
+        .btn-clear { background: #c0392b; font-size: 18px; }
+        .btn-mix { background: #e67e22; flex-grow: 1; max-width: 200px; }
 
-        /* Toppliste bok */
+        /* Leaderboard */
         .leaderboard-container {
-            background: rgba(0,0,0,0.6);
-            padding: 15px;
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
             border-radius: 10px;
             width: 90%;
-            margin-top: 20px;
-            border: 1px solid var(--accent-color);
+            margin-top: 10px;
+            font-size: 14px;
+            text-align: left;
         }
-        ol li { text-align: left; margin-bottom: 5px; font-size: 18px; color: #f1c40f; }
-
-        /* Hjelpe-tekst (Feedback) */
-        #feedback-msg {
-            height: 30px; 
-            margin: 10px; 
-            font-size: 20px; 
-            font-weight: bold;
-            color: var(--accent-color);
-            text-shadow: 0 0 5px black;
-        }
+        ol { padding-left: 25px; margin: 5px 0; }
+        li { margin-bottom: 3px; color: #f1c40f; }
 
     </style>
 </head>
@@ -250,31 +200,266 @@
 <div id="game-container">
     
     <div id="start-screen" class="screen active">
-        <h1>⚗️ Alkymisten ⚗️</h1>
-        <p>Hvem brygger i dag?</p>
-        <input type="text" id="player-name" placeholder="Navn..." maxlength="10">
+        <h1>⚗️ Alkymisten</h1>
+        <p>Skriv inn navnet ditt:</p>
         
-        <p style="margin-bottom: 5px;">Velg vanskelighetsgrad:</p>
-        <div class="difficulty-selector">
-            <button class="diff-btn selected" id="diff-1" onclick="selectDifficulty(1)">Lærling</button>
-            <button class="diff-btn" id="diff-2" onclick="selectDifficulty(2)">Svenn</button>
-            <button class="diff-btn" id="diff-3" onclick="selectDifficulty(3)">Mester</button>
-        </div>
+        <form onsubmit="event.preventDefault(); startGame();" style="width:100%; display:flex; flex-direction:column; align-items:center;">
+            <input type="text" id="player-name" placeholder="Navn..." maxlength="10" autocomplete="off">
+            <div id="start-error" class="error-msg"></div>
+            
+            <p style="margin-bottom: 5px;">Velg nivå:</p>
+            <div class="difficulty-selector">
+                <div class="diff-btn selected" id="diff-1" onclick="selectDifficulty(1)">Lærling</div>
+                <div class="diff-btn" id="diff-2" onclick="selectDifficulty(2)">Svenn</div>
+                <div class="diff-btn" id="diff-3" onclick="selectDifficulty(3)">Mester</div>
+            </div>
 
-        <button class="start-btn" onclick="startGame()">Start Brygging</button>
+            <button type="submit" class="start-btn">START SPILLET</button>
+        </form>
         
         <div class="leaderboard-container">
-            <h3>🏆 Hall of Fame (Lokal)</h3>
+            <strong>Topp 5 (På denne iPaden):</strong>
             <ol id="start-leaderboard"></ol>
         </div>
     </div>
 
     <div id="game-screen" class="screen">
         <div style="display: flex; justify-content: space-between; width: 100%; padding: 0 20px;">
-            <span>🧙‍♂️ <span id="disp-name">Navn</span></span>
-            <span style="color: gold">⭐ <span id="disp-xp">0</span> XP</span>
+            <span>👤 <span id="disp-name">Spiller</span></span>
+            <span style="color: gold">⭐ <span id="disp-xp">0</span></span>
         </div>
 
         <div class="quest-board">
-            <div style="text-transform: uppercase; font-size: 14px; opacity: 0.7;">Bestilling:</div>
-            <div id="quest-text" class
+            <div style="font-size: 14px; opacity: 0.8;">OPPDRAG:</div>
+            <div id="quest-text" style="font-size: 24px; font-weight:bold;">Lag tallet...</div>
+        </div>
+
+        <div class="cauldron-container">
+            <div class="cauldron" id="cauldron-visual">
+                <div class="liquid" id="liquid"></div>
+                <div class="cauldron-number" id="current-brew">1</div>
+            </div>
+        </div>
+
+        <div id="feedback-msg" style="height: 30px; font-weight:bold; color: #f1c40f; margin: 10px;"></div>
+
+        <div class="rune-pad">
+            <div style="margin-bottom: 5px; font-size: 14px;">Ingredienser (Primtall):</div>
+            <div>
+                <button class="ingredient" onclick="addIngredient(2)">2</button>
+                <button class="ingredient" onclick="addIngredient(3)">3</button>
+                <button class="ingredient" onclick="addIngredient(5)">5</button>
+                <button class="ingredient" id="btn-7" style="display:none;" onclick="addIngredient(7)">7</button>
+            </div>
+            <div class="controls">
+                <button class="btn-clear" onclick="clearCauldron()">Tøm</button>
+                <button class="btn-mix" onclick="submitBrew()">BLAND!</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="end-screen" class="screen">
+        <h1 style="color:gold">Ferdig!</h1>
+        <p>Du fikk tittelen:</p>
+        <h2 id="final-title" style="color: var(--accent-color)">Novise</h2>
+        <div style="background: #333; padding: 20px; border-radius: 10px; margin: 20px;">
+            Poeng: <span id="final-score" style="font-size: 30px; color: gold;">0</span> XP
+        </div>
+        <button class="start-btn" onclick="goToStart()">Spill Igjen</button>
+    </div>
+
+</div>
+
+<script>
+    // --- VARIABLER ---
+    let playerName = "";
+    let score = 0;
+    let currentBrew = 1;
+    let targetNumber = 0;
+    let difficulty = 1;
+    let roundsPlayed = 0;
+    const maxRounds = 10;
+    
+    // Kjør ved start
+    updateLeaderboardDisplay();
+
+    // --- FUNKSJONER ---
+
+    function selectDifficulty(lvl) {
+        difficulty = lvl;
+        // Fjern 'selected' fra alle, legg til på den valgte
+        document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('selected'));
+        let btn = document.getElementById('diff-' + lvl);
+        if(btn) btn.classList.add('selected');
+    }
+
+    function startGame() {
+        const inputField = document.getElementById('player-name');
+        const errorField = document.getElementById('start-error');
+        
+        let val = inputField.value;
+        
+        if (!val || val.trim() === "") {
+            errorField.innerText = "⚠️ Du må skrive et navn!";
+            return;
+        }
+
+        // Hvis vi kom hit, er alt OK
+        errorField.innerText = "";
+        playerName = val.trim();
+        score = 0;
+        roundsPlayed = 0;
+        
+        document.getElementById('disp-name').innerText = playerName;
+        
+        // Bytt skjerm
+        switchScreen('game-screen');
+        newRound();
+    }
+
+    function switchScreen(screenId) {
+        // Skjul alle skjermer
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        // Vis den valgte
+        const screen = document.getElementById(screenId);
+        if(screen) screen.classList.add('active');
+    }
+
+    function newRound() {
+        if (roundsPlayed >= maxRounds) {
+            endGame();
+            return;
+        }
+        roundsPlayed++;
+        clearCauldron();
+        document.getElementById('disp-xp').innerText = score;
+
+        // Vis 7-tallet kun på vanskeligere nivåer
+        let showSeven = (difficulty === 3) || (difficulty === 2 && roundsPlayed > 5);
+        document.getElementById('btn-7').style.display = showSeven ? 'inline-block' : 'none';
+
+        targetNumber = generateTarget();
+        document.getElementById('quest-text').innerText = "Lag tallet " + targetNumber;
+    }
+
+    function generateTarget() {
+        let primes = [2, 3, 5];
+        let maxVal = 50; 
+        let minFactors = 2;
+        let maxFactors = 3; // Lærling: 2 eller 3 faktorer
+
+        if (difficulty === 2) { // Svenn
+            maxVal = 100;
+            maxFactors = 4;
+        } 
+        else if (difficulty === 3) { // Mester
+            primes = [2, 3, 5, 7];
+            maxVal = 200;
+            maxFactors = 5;
+        }
+
+        let product = 1;
+        // Tilfeldig antall faktorer
+        let count = Math.floor(Math.random() * (maxFactors - minFactors + 1)) + minFactors;
+        
+        for(let i=0; i<count; i++) {
+            let p = primes[Math.floor(Math.random() * primes.length)];
+            // Sjekk at vi ikke går over maksgrensen for nivået
+            if (product * p > maxVal) break;
+            product *= p;
+        }
+        
+        // Sikring: Hvis tallet er for lite (f.eks. bare 2), prøv igjen eller sett til 6
+        if (product < 4) return 6; 
+        return product;
+    }
+
+    function addIngredient(p) {
+        currentBrew *= p;
+        updateCauldronDisplay();
+    }
+
+    function clearCauldron() {
+        currentBrew = 1;
+        updateCauldronDisplay();
+        document.getElementById('feedback-msg').innerText = "";
+        document.getElementById('liquid').style.backgroundColor = "#27ae60"; // Grønn
+    }
+
+    function updateCauldronDisplay() {
+        const el = document.getElementById('current-brew');
+        el.innerText = currentBrew;
+        
+        if (currentBrew > targetNumber) {
+            el.style.color = "#e74c3c"; // Rød tekst
+            document.getElementById('liquid').style.backgroundColor = "#c0392b"; // Rød væske
+        } else {
+            el.style.color = "white";
+        }
+    }
+
+    function submitBrew() {
+        if (currentBrew === targetNumber) {
+            // RIKTIG
+            let points = 10 * difficulty;
+            score += points;
+            document.getElementById('feedback-msg').innerText = "✨ RIKTIG! +" + points + " XP";
+            document.getElementById('feedback-msg').style.color = "#2ecc71";
+            document.getElementById('liquid').style.backgroundColor = "#f1c40f"; // Gull
+            setTimeout(newRound, 1200);
+        } else {
+            // FEIL
+            document.getElementById('feedback-msg').innerText = "💥 FEIL! Det ble " + currentBrew;
+            document.getElementById('feedback-msg').style.color = "#e74c3c";
+            score = Math.max(0, score - 5);
+            document.getElementById('disp-xp').innerText = score;
+        }
+    }
+
+    function endGame() {
+        switchScreen('end-screen');
+        document.getElementById('final-score').innerText = score;
+        
+        let title = "Novise";
+        if (score > 100) title = "Lærling";
+        if (score > 200) title = "Heksemester";
+        if (score > 300) title = "Legende";
+        document.getElementById('final-title').innerText = title;
+
+        saveScore(playerName, score);
+    }
+
+    function goToStart() {
+        updateLeaderboardDisplay();
+        switchScreen('start-screen');
+    }
+
+    // --- LAGRING ---
+    function saveScore(name, pts) {
+        let scores = JSON.parse(localStorage.getItem('alkymi_scores_v3')) || [];
+        scores.push({name: name, score: pts});
+        scores.sort((a, b) => b.score - a.score);
+        scores = scores.slice(0, 5);
+        localStorage.setItem('alkymi_scores_v3', JSON.stringify(scores));
+    }
+
+    function updateLeaderboardDisplay() {
+        let scores = JSON.parse(localStorage.getItem('alkymi_scores_v3')) || [];
+        let list = document.getElementById('start-leaderboard');
+        list.innerHTML = "";
+        
+        if(scores.length === 0) {
+            list.innerHTML = "<li>Ingen poeng enda...</li>";
+        } else {
+            scores.forEach(s => {
+                let li = document.createElement('li');
+                li.innerText = s.name + ": " + s.score + " XP";
+                list.appendChild(li);
+            });
+        }
+    }
+
+</script>
+
+</body>
+</html>
