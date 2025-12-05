@@ -2,482 +2,402 @@
 <html lang="no">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ord-Krukken: Fyll den opp!</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Alkymistens Laboratorium</title>
     <style>
-        :root {
-            --bg-color: #2c3e50;
-            --text-color: #ecf0f1;
-            --primary: #3498db;
-            --accent: #f1c40f;
-            --jar-glass: rgba(255, 255, 255, 0.2);
-            --jar-border: rgba(255, 255, 255, 0.6);
-            --liquid-color: #e67e22; /* Oransje væske */
-        }
-
+        /* DESIGN OG UTSEENDE */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            background-color: #2c3e50;
+            color: white;
+            text-align: center;
             margin: 0;
+            padding: 0;
+            touch-action: manipulation; /* Forhindrer zooming på iPad */
+        }
+
+        #game-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
             height: 100vh;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            justify-content: space-between;
         }
 
-        /* --- SCREENS --- */
+        /* Startskjerm */
         .screen {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            display: flex;
+            display: none; /* Skjuler alle skjermer som standard */
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background-color: var(--bg-color);
-            z-index: 10;
-            transition: opacity 0.5s;
-        }
-        .hidden { display: none; opacity: 0; }
-
-        h1 { font-size: 3rem; margin-bottom: 10px; text-shadow: 2px 2px 0px #000; }
-        h2 { margin-bottom: 20px; color: var(--accent); }
-
-        /* --- MENU BUTTONS --- */
-        .btn {
-            padding: 15px 30px;
-            margin: 10px;
-            font-size: 1.5rem;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            font-weight: bold;
-            width: 250px;
-        }
-        .btn:hover { transform: scale(1.05); box-shadow: 0 0 15px rgba(255,255,255,0.4); }
-        .btn-easy { background-color: #2ecc71; color: white; }
-        .btn-medium { background-color: #f39c12; color: white; }
-        .btn-hard { background-color: #e74c3c; color: white; }
-        
-        /* --- GAME LAYOUT --- */
-        #game-container {
-            display: flex;
-            width: 100%;
             height: 100%;
-            max-width: 1200px;
         }
 
-        /* LEFT: QUIZ */
-        #quiz-panel {
-            flex: 1;
-            padding: 40px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+        .active {
+            display: flex; /* Viser den aktive skjermen */
         }
 
-        #target-word { font-size: 4rem; margin: 20px 0; font-weight: 800; color: var(--primary); text-shadow: 1px 1px 5px black;}
-        #question-text { font-size: 1.5rem; opacity: 0.8; }
-        
-        .option-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            width: 100%;
-            max-width: 500px;
-        }
-        .btn-option {
-            background-color: #ecf0f1;
-            color: #2c3e50;
-            font-size: 1.5rem;
-            padding: 20px;
+        input {
+            padding: 15px;
+            font-size: 18px;
             border-radius: 10px;
             border: none;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        button {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 20px;
+            border-radius: 10px;
             cursor: pointer;
-            transition: background 0.2s;
+            box-shadow: 0 4px #1e8449;
+            transition: all 0.1s;
+            margin: 5px;
         }
-        .btn-option:hover { background-color: #bdc3c7; }
-        .btn-option:disabled { opacity: 0.6; cursor: default; }
 
-        /* RIGHT: JAR */
-        #jar-panel {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+        button:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 #1e8449;
+        }
+
+        button.ingredient {
+            background-color: #8e44ad;
+            box-shadow: 0 4px #6c3483;
+            width: 70px;
+            height: 70px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        button.action-btn {
+            background-color: #e67e22;
+            box-shadow: 0 4px #d35400;
+        }
+
+        button.clear-btn {
+            background-color: #c0392b;
+            box-shadow: 0 4px #922b21;
+        }
+
+        /* Spill-elementer */
+        .customer-bubble {
+            background-color: white;
+            color: #333;
+            padding: 20px;
+            border-radius: 20px;
             position: relative;
+            margin-bottom: 20px;
+            font-size: 22px;
+            font-weight: bold;
         }
-
-        /* THE JAR CONTAINER */
-        #jar {
-            width: 200px;
-            height: 350px;
-            border: 8px solid var(--jar-border);
-            border-top: none;
-            border-radius: 0 0 50px 50px;
-            position: relative;
-            background: var(--jar-glass);
-            overflow: hidden; /* Mask liquid */
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
-        }
-
-        /* LIQUID */
-        #liquid {
+        
+        .customer-bubble:after {
+            content: '';
             position: absolute;
             bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 0%; /* Dynamic */
-            background: linear-gradient(to top, #d35400, #f1c40f);
-            transition: height 0.3s ease-out;
-            box-shadow: 0 0 20px #f1c40f;
-        }
-        
-        /* Surface wobble animation */
-        #liquid::after {
-            content: "";
-            position: absolute;
-            top: -10px;
-            left: 0;
-            width: 100%;
-            height: 20px;
-            background: rgba(255,255,255,0.3);
-            border-radius: 50%;
-        }
-
-        /* LEAK HOLE */
-        #leak-hole {
-            position: absolute;
-            bottom: -15px; /* Just below jar */
             left: 50%;
-            transform: translateX(-50%);
-            width: 10px; 
-            height: 10px;
+            width: 0;
+            height: 0;
+            border: 20px solid transparent;
+            border-top-color: white;
+            border-bottom: 0;
+            margin-left: -20px;
+            margin-bottom: -20px;
         }
 
-        /* LEAKING STARS ANIMATION */
-        .star {
-            position: absolute;
-            color: #f1c40f;
-            font-size: 20px;
-            animation: fall 1s linear forwards;
-            pointer-events: none;
-        }
-
-        @keyframes fall {
-            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-            100% { transform: translateY(200px) rotate(180deg); opacity: 0; }
-        }
-
-        /* FILL ANIMATION */
-        .fill-star {
-            position: absolute;
-            color: #f1c40f;
-            font-size: 40px;
-            z-index: 100;
-            animation: flyIn 0.8s ease-in forwards;
-        }
-        @keyframes flyIn {
-            0% { top: 50%; left: 20%; opacity: 1; transform: scale(1); }
-            100% { top: 20%; left: 70%; opacity: 0; transform: scale(0.5); }
-        }
-
-        /* HUD */
-        #level-display {
-            position: absolute;
-            top: 20px; right: 20px;
-            font-size: 2rem;
-            background: rgba(0,0,0,0.5);
-            padding: 10px 20px;
-            border-radius: 10px;
-        }
-
-        /* --- OVERLAYS --- */
-        #levelup-overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(46, 204, 113, 0.9);
+        .cauldron-area {
+            background: #34495e;
+            border-radius: 50%;
+            width: 200px;
+            height: 200px;
             display: flex;
-            flex-direction: column;
-            justify-content: center;
             align-items: center;
-            z-index: 50;
-            display: none;
+            justify-content: center;
+            margin: 20px auto;
+            border: 5px solid #7f8c8d;
+            font-size: 40px;
+            color: #f1c40f;
+            flex-direction: column;
         }
-        #levelup-overlay h2 { font-size: 4rem; color: white; margin: 0; }
+
+        .cauldron-label {
+            font-size: 14px;
+            color: #bdc3c7;
+            margin-bottom: 5px;
+        }
+
+        .ingredients-rack {
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 15px;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .feedback {
+            height: 30px;
+            color: #f1c40f;
+            font-weight: bold;
+        }
+
+        /* Leaderboard styling */
+        .leaderboard-box {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            width: 80%;
+            text-align: left;
+        }
+        .leaderboard-box ol {
+            padding-left: 20px;
+        }
 
     </style>
 </head>
 <body>
 
-    <div id="start-screen" class="screen">
-        <h1>Ord-Krukken 🏺</h1>
-        <p>Velg synonymer eller antonymer i spillet. Fyll krukken før den renner tom!</p>
-        <h2>Velg vanskelighetsgrad:</h2>
-        <button class="btn btn-easy" onclick="startGame('easy')">Lett 🌱</button>
-        <button class="btn btn-medium" onclick="startGame('medium')">Middels ⚖️</button>
-        <button class="btn btn-hard" onclick="startGame('hard')">Vanskelig 🔥</button>
-    </div>
-
-    <div id="game-screen" class="screen hidden">
-        <div id="level-display">Nivå: <span id="level-num">1</span></div>
+<div id="game-container">
+    
+    <div id="start-screen" class="screen active">
+        <h1>⚗️ Alkymistens Lab ⚗️</h1>
+        <p>Skriv inn navnet ditt, lærling:</p>
+        <input type="text" id="player-name" placeholder="Ditt navn..." maxlength="12">
+        <button onclick="startGame()">Start Spillet</button>
         
-        <div id="game-container">
-            <div id="quiz-panel">
-                <p id="question-text">Hva betyr det samme som...</p>
-                <h1 id="target-word">ORD</h1>
-                <div class="option-grid" id="options-container">
-                    </div>
-                <div style="margin-top:20px;">
-                    <button id="toggle-mode-btn" style="background:none; border:1px solid white; color:white; padding:5px 10px; cursor:pointer;" onclick="toggleMode()">Bytt til Antonymer</button>
-                </div>
-            </div>
-
-            <div id="jar-panel">
-                <div id="jar">
-                    <div id="liquid"></div>
-                </div>
-                <div id="leak-hole"></div>
-            </div>
-        </div>
-
-        <div id="levelup-overlay">
-            <h2>Nivå Opp!</h2>
-            <p style="font-size: 2rem;">Krukken rant over! 🌊</p>
-            <p>Gjør deg klar, nå renner det raskere...</p>
+        <div class="leaderboard-box">
+            <h3>🏆 Lokal Toppliste (på denne iPaden)</h3>
+            <ol id="start-leaderboard"></ol>
         </div>
     </div>
 
-    <script>
-        // --- DATA (UTVIDET LISTE) ---
-        // Liste med både synonymer og antonymer blandet
-        const wordData = {
-            synonyms: [
-                { w: "Glad", c: "Lykkelig", d: ["Sint", "Trist", "Redd"] },
-                { w: "Liten", c: "Små", d: ["Stor", "Høy", "Bred"] },
-                { w: "Venn", c: "Kamerat", d: ["Fiende", "Fremmed", "Nabo"] },
-                { w: "Hus", c: "Bolig", d: ["Bil", "Båt", "Skole"] },
-                { w: "Rope", c: "Skrike", d: ["Hviske", "Snakke", "Tenne"] },
-                { w: "Se", c: "Kikke", d: ["Høre", "Lukte", "Føle"] },
-                { w: "Gå", c: "Spasere", d: ["Løpe", "Sitte", "Ligge"] },
-                { w: "Redd", c: "Engstelig", d: ["Tøff", "Modig", "Sint"] },
-                { w: "Gave", c: "Presang", d: ["Brev", "Pakke", "Ting"] },
-                { w: "Jobb", c: "Arbeid", d: ["Ferie", "Lek", "Skole"] },
-                { w: "Vanskelig", c: "Komplisert", d: ["Lett", "Enkelt", "Morsomt"] },
-                { w: "Stille", c: "Rolig", d: ["Bråkete", "Høylytt", "Sint"] },
-                { w: "Pen", c: "Vakker", d: ["Stygg", "Fæl", "Gammel"] },
-                { w: "Hjelpe", c: "Bistå", d: ["Hindere", "Plage", "Stoppe"] },
-                { w: "Begynne", c: "Starte", d: ["Slutte", "Ferdig", "Vente"] },
-                { w: "Mye", c: "Masse", d: ["Lite", "Ingenting", "Få"] },
-                { w: "Varm", c: "Het", d: ["Kald", "Kjølig", "Våt"] },
-                { w: "Rask", c: "Hurtig", d: ["Sakte", "Treg", "Sen"] },
-                { w: "Penger", c: "Mynter", d: ["Papir", "Steiner", "Mat"] },
-                { w: "Lege", c: "Doktor", d: ["Lærer", "Politi", "Kokk"] }
-            ],
-            antonyms: [
-                { w: "Varm", c: "Kald", d: ["Sulten", "Våt", "Trøtt"] },
-                { w: "Stor", c: "Liten", d: ["Høy", "Bred", "Tung"] },
-                { w: "Dag", c: "Natt", d: ["Kveld", "Morgen", "Lys"] },
-                { w: "Full", c: "Tom", d: ["Halv", "Tung", "Lett"] },
-                { w: "Billig", c: "Dyr", d: ["Fin", "Rik", "Gratis"] },
-                { w: "Opp", c: "Ned", d: ["Bort", "Inn", "Ut"] },
-                { w: "Inn", c: "Ut", d: ["Opp", "Fram", "Tilbake"] },
-                { w: "Svart", c: "Hvit", d: ["Rød", "Grønn", "Blå"] },
-                { w: "Ung", c: "Gammel", d: ["Ny", "Voksen", "Baby"] },
-                { w: "Tørr", c: "Våt", d: ["Kald", "Ren", "Skitten"] },
-                { w: "Glad", c: "Sur", d: ["Lykkelig", "Sint", "Trist"] },
-                { w: "Levende", c: "Død", d: ["Sove", "Våken", "Syke"] },
-                { w: "Stille", c: "Bråkete", d: ["Rolig", "Høy", "Lav"] },
-                { w: "Ren", c: "Skitten", d: ["Pen", "Ny", "Ryddig"] },
-                { w: "Sterk", c: "Svak", d: ["Stor", "Hard", "Tynn"] },
-                { w: "Først", c: "Sist", d: ["Andre", "Neste", "Midt"] },
-                { w: "Alltid", c: "Aldri", d: ["Ofte", "Noen ganger", "Nå"] },
-                { w: "Tung", c: "Lett", d: ["Stor", "Vanskelig", "Hard"] },
-                { w: "Vinne", c: "Tape", d: ["Spille", "Delta", "Løpe"] },
-                { w: "Åpne", c: "Lukke", d: ["Låse", "Gå", "Se"] }
-            ]
-        };
+    <div id="game-screen" class="screen">
+        <div class="status-bar">
+            <span id="display-name">Spiller: ...</span>
+            <span id="display-score">XP: 0</span>
+            <span id="display-level">Nivå: 1</span>
+        </div>
 
-        // --- SPILLVARIABLER ---
-        let currentMode = 'synonyms'; 
-        let currentDifficulty = 'medium';
-        let xp = 0;
-        let maxXP = 100;
-        let leakRate = 0.2; // XP per tick
-        let fillAmount = 15; // XP per correct answer
-        let level = 1;
-        let gameLoop;
-        let currentQuestion = null;
-        let isGameActive = false;
+        <div class="customer-bubble">
+            <span id="quest-text">Jeg trenger eliksir 12!</span>
+        </div>
 
-        // --- OPPSTART ---
+        <div class="cauldron-area">
+            <span class="cauldron-label">I gryta nå:</span>
+            <span id="current-brew">1</span>
+        </div>
+        
+        <div id="feedback-msg" class="feedback"></div>
 
-        function startGame(difficulty) {
-            currentDifficulty = difficulty;
-            
-            // Konfigurer vanskelighetsgrad
-            if(difficulty === 'easy') { leakRate = 0.15; fillAmount = 20; }
-            if(difficulty === 'medium') { leakRate = 0.4; fillAmount = 15; }
-            if(difficulty === 'hard') { leakRate = 0.8; fillAmount = 10; }
+        <div class="ingredients-rack">
+            <p>Tilsett ingredienser:</p>
+            <div>
+                <button class="ingredient" onclick="addIngredient(2)">2</button>
+                <button class="ingredient" onclick="addIngredient(3)">3</button>
+                <button class="ingredient" onclick="addIngredient(5)">5</button>
+                <button class="ingredient" id="btn-7" style="display:none;" onclick="addIngredient(7)">7</button>
+            </div>
+            <div style="margin-top: 15px;">
+                <button class="clear-btn" onclick="clearCauldron()">Tøm gryta</button>
+                <button class="action-btn" onclick="submitBrew()">BLAND!</button>
+            </div>
+        </div>
+    </div>
 
-            document.getElementById('start-screen').classList.add('hidden');
-            document.getElementById('game-screen').classList.remove('hidden');
-            
-            level = 1;
-            xp = 20; // Start med litt i krukken så det renner med en gang
-            updateLevelDisplay();
-            
-            isGameActive = true;
-            nextQuestion();
-            
-            // Start spill-løkken (lekkasjen)
-            clearInterval(gameLoop);
-            gameLoop = setInterval(gameTick, 50); // Kjører 20 ganger i sekundet
+    <div id="end-screen" class="screen">
+        <h1>Tiden er ute!</h1>
+        <h2>Du fikk <span id="final-score" style="color: #f1c40f">0</span> XP</h2>
+        <p>Vis denne skjermen til læreren for å komme på tavla!</p>
+        <button onclick="goToStart()">Spill igjen</button>
+    </div>
+
+</div>
+
+<script>
+    // SPILLVARIABLER
+    let playerName = "";
+    let score = 0;
+    let currentBrew = 1;
+    let targetNumber = 0;
+    let level = 1;
+    let questionsAnswered = 0;
+    let maxQuestions = 10; // Hvor mange oppgaver før spillet er slutt?
+
+    // PRIMTALLSLISTE
+    const primes = [2, 3, 5, 7];
+
+    // OPPSTART
+    function init() {
+        updateLeaderboardDisplay();
+    }
+
+    function startGame() {
+        const inputName = document.getElementById('player-name').value;
+        if (inputName.trim() === "") {
+            alert("Du må skrive et navn!");
+            return;
+        }
+        playerName = inputName;
+        score = 0;
+        level = 1;
+        questionsAnswered = 0;
+        document.getElementById('display-name').innerText = "Alkymist: " + playerName;
+        
+        // Vis spillskjerm
+        switchScreen('game-screen');
+        newRound();
+    }
+
+    // NY RUNDE LOGIKK
+    function newRound() {
+        if (questionsAnswered >= maxQuestions) {
+            endGame();
+            return;
         }
 
-        // --- SPILL-LØKKE ---
+        clearCauldron();
+        document.getElementById('display-score').innerText = "XP: " + score;
+        document.getElementById('display-level').innerText = "Nivå: " + level;
+        
+        // Vanskelighetsgrad
+        if (score > 100) level = 2;
+        if (score > 300) level = 3;
 
-        function gameTick() {
-            if(!isGameActive) return;
+        // Vis knapp 7 hvis nivå 2+
+        if (level >= 2) document.getElementById('btn-7').style.display = 'inline-block';
+        else document.getElementById('btn-7').style.display = 'none';
 
-            // Trekk fra XP (Lekkasje)
-            if(xp > 0) {
-                xp -= leakRate;
-                createLeakParticle(); // Visuell effekt
-            } else {
-                xp = 0; // Går ikke under 0
-            }
+        // Generer et tall basert på nivå
+        targetNumber = generateTarget(level);
+        
+        // Lag tekst
+        document.getElementById('quest-text').innerText = "Lag Eliksir " + targetNumber + "!";
+    }
 
-            updateJarVisuals();
+    function generateTarget(lvl) {
+        // Enkel logikk for å generere tall som KAN faktoriseres
+        let factors = [];
+        let limit = (lvl === 1) ? 3 : 4; // Hvor mange faktorer
+        let availablePrimes = (lvl === 1) ? [2, 3, 5] : [2, 3, 5, 7];
+
+        // Sørg for at vi har minst to faktorer
+        let numFactors = Math.floor(Math.random() * limit) + 2; 
+
+        let product = 1;
+        for (let i = 0; i < numFactors; i++) {
+            let p = availablePrimes[Math.floor(Math.random() * availablePrimes.length)];
+            // Unngå at tallet blir for stort (over 100 på nivå 1)
+            if (product * p > 100 && lvl === 1) break;
+            product *= p;
         }
+        // Sikkerhetsnett: hvis produktet ved et uhell er primtall (skjer ikke med logikken over men greit å ha) eller for lite
+        if (product < 4) return 6; 
+        return product;
+    }
 
-        function updateJarVisuals() {
-            const liquid = document.getElementById('liquid');
-            // Beregn høyde prosent (maks 100%)
-            let percentage = (xp / maxXP) * 100;
-            if(percentage > 100) percentage = 100;
-            
-            liquid.style.height = percentage + "%";
-            
-            // Endre farge når den er nesten full (Visual feedback)
-            if(percentage > 80) liquid.style.boxShadow = "0 0 40px #f1c40f";
-            else liquid.style.boxShadow = "0 0 20px #f1c40f";
+    // SPILLER HANDLINGER
+    function addIngredient(p) {
+        currentBrew *= p;
+        updateCauldron();
+    }
+
+    function clearCauldron() {
+        currentBrew = 1;
+        updateCauldron();
+        setMessage("");
+    }
+
+    function updateCauldron() {
+        document.getElementById('current-brew').innerText = currentBrew;
+        // Visuell feedback hvis tallet blir for høyt
+        if (currentBrew > targetNumber) {
+            document.getElementById('current-brew').style.color = "#e74c3c"; // Rød
+        } else {
+            document.getElementById('current-brew').style.color = "#f1c40f"; // Gul
         }
+    }
 
-        function createLeakParticle() {
-            // Lager bare stjerner av og til for ikke å kvele nettleseren
-            if(Math.random() > 0.3) return; 
-
-            const hole = document.getElementById('leak-hole');
-            const star = document.createElement('div');
-            star.innerText = "★"; // Liten stjerne
-            star.className = "star";
-            // Tilfeldig liten variasjon i posisjon
-            const offset = (Math.random() * 20) - 10;
-            star.style.left = offset + "px";
-            
-            hole.appendChild(star);
-
-            // Fjern elementet etter animasjonen
-            setTimeout(() => { star.remove(); }, 1000);
+    function submitBrew() {
+        if (currentBrew === targetNumber) {
+            // RIKTIG
+            let points = 10 * level;
+            score += points;
+            setMessage("✨ Perfekt! +" + points + " XP");
+            questionsAnswered++;
+            setTimeout(newRound, 1500); // Vent litt før neste
+        } else {
+            // FEIL
+            setMessage("💥 Oisann! Det ble " + currentBrew + ", ikke " + targetNumber);
+            document.getElementById('current-brew').style.color = "red";
+            score = Math.max(0, score - 5); // Minuspoeng men ikke under 0
+            document.getElementById('display-score').innerText = "XP: " + score;
         }
+    }
 
-        // --- QUIZ LOGIKK ---
+    function setMessage(msg) {
+        document.getElementById('feedback-msg').innerText = msg;
+    }
 
-        function toggleMode() {
-            currentMode = (currentMode === 'synonyms') ? 'antonyms' : 'synonyms';
-            const btn = document.getElementById('toggle-mode-btn');
-            btn.innerText = (currentMode === 'synonyms') ? 'Bytt til Antonymer' : 'Bytt til Synonymer';
-            nextQuestion();
-        }
+    function switchScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
 
-        function nextQuestion() {
-            const pool = wordData[currentMode];
-            const randIndex = Math.floor(Math.random() * pool.length);
-            currentQuestion = pool[randIndex];
+    // AVSLUTT OG SCORE
+    function endGame() {
+        switchScreen('end-screen');
+        document.getElementById('final-score').innerText = score;
+        saveScore(playerName, score);
+    }
 
-            // UI Tekst
-            const qText = document.getElementById('question-text');
-            qText.innerText = (currentMode === 'synonyms') ? "Hva betyr det samme som..." : "Hva er det motsatte av...";
-            
-            document.getElementById('target-word').innerText = currentQuestion.w;
+    function goToStart() {
+        updateLeaderboardDisplay();
+        switchScreen('start-screen');
+    }
 
-            // Knapper
-            const container = document.getElementById('options-container');
-            container.innerHTML = "";
+    // LOKAL LAGRING (Local Storage)
+    function saveScore(name, score) {
+        let scores = JSON.parse(localStorage.getItem('alkymistScores')) || [];
+        scores.push({name: name, score: score});
+        scores.sort((a, b) => b.score - a.score); // Sorter høyest først
+        scores = scores.slice(0, 5); // Behold bare top 5
+        localStorage.setItem('alkymistScores', JSON.stringify(scores));
+    }
 
-            let options = [currentQuestion.c, ...currentQuestion.d];
-            options.sort(() => Math.random() - 0.5);
-
-            options.forEach(opt => {
-                const btn = document.createElement('button');
-                btn.className = 'btn-option';
-                btn.innerText = opt;
-                btn.onclick = () => checkAnswer(opt, btn);
-                container.appendChild(btn);
+    function updateLeaderboardDisplay() {
+        let scores = JSON.parse(localStorage.getItem('alkymistScores')) || [];
+        let list = document.getElementById('start-leaderboard');
+        list.innerHTML = "";
+        
+        if (scores.length === 0) {
+            list.innerHTML = "<li>Ingen mestere enda...</li>";
+        } else {
+            scores.forEach(s => {
+                let li = document.createElement('li');
+                li.innerText = s.name + " - " + s.score + " XP";
+                list.appendChild(li);
             });
         }
+    }
 
-        function checkAnswer(selected, btnElement) {
-            if(selected === currentQuestion.c) {
-                // RIKTIG
-                btnElement.style.backgroundColor = "#2ecc71"; // Grønn
-                
-                // Legg til XP
-                xp += fillAmount;
-                
-                // Visuell effekt: Flyvende stjerne fra spørsmål til krukke
-                showFlyingStar();
+    // Kjør ved start
+    init();
 
-                // Sjekk nivå opp
-                if(xp >= maxXP) {
-                    doLevelUp();
-                } else {
-                    setTimeout(nextQuestion, 500);
-                }
-            } else {
-                // FEIL
-                btnElement.style.backgroundColor = "#e74c3c"; // Rød
-                btnElement.disabled = true;
-                // Straff: Mister litt ekstra XP? Nei, tidstapet er straff nok.
-            }
-        }
+</script>
 
-        function showFlyingStar() {
-            // Bare en visuell "gimmick" for å vise at man tjente poeng
-            // I en full versjon ville vi kalkulert posisjoner, her forenkler vi
-            // ved å bare oppdatere krukken umiddelbart.
-        }
-
-        // --- NIVÅ SYSTEM ---
-
-        function doLevelUp() {
-            isGameActive = false; // Pause lekkasjen
-            
-            const overlay = document.getElementById('levelup-overlay');
-            overlay.style.display = 'flex'; // Vis overlay
-
-            setTimeout(() => {
-                // Øk vanskelighetsgraden
-                level++;
-                leakRate *= 1.2; // 20% raskere lekkasje
-                xp = 20; // Reset krukken til bunnen
-                
-                updateLevelDisplay();
-                
-                overlay.style.display = 'none';
-                isGameActive = true;
-                nextQuestion();
-            }, 3000); // 3 sekunder pause
-        }
-
-        function updateLevelDisplay() {
-            document.getElementById('level-num').innerText = level;
-        }
-
-    </script>
 </body>
 </html>
