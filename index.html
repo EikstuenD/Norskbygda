@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Norsk Ordmester Pro</title>
+    <title>Norsk Ordmester - Videoutgave</title>
     <style>
         /* --- CSS: DESIGN --- */
         :root {
@@ -58,11 +58,12 @@
         .streak-visible { opacity: 1; }
 
         .word-display {
-            font-size: 3rem;
+            font-size: 2.5rem; /* Litt mindre skrift for å få plass til lengre uttrykk */
             font-weight: 800;
             margin: 10px 0 30px 0;
             color: #1C1C1E;
             text-align: center;
+            min-height: 60px;
         }
 
         /* Layout for spill-området: Knapper til venstre, Bar til høyre */
@@ -100,7 +101,6 @@
             border-radius: 0 0 20px 20px;
         }
 
-        /* Nivå-indikator på toppen av baren */
         .next-level-badge {
             position: absolute;
             top: 5px;
@@ -114,8 +114,8 @@
 
         /* Knapper */
         .btn {
-            padding: 25px 10px;
-            font-size: 1.2rem;
+            padding: 20px 5px;
+            font-size: 1.1rem; /* Justert ned litt for fraser */
             font-weight: 600;
             border: none;
             border-radius: 16px;
@@ -123,6 +123,7 @@
             color: white;
             transition: transform 0.1s;
             box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+            word-wrap: break-word;
         }
         .btn:active { transform: scale(0.96); box-shadow: 0 2px 0 rgba(0,0,0,0.1); }
         
@@ -158,7 +159,6 @@
             75% { transform: translateX(5px); }
         }
 
-        /* Level Up Overlay */
         #levelup-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.8);
@@ -173,8 +173,8 @@
 <body>
 
     <div id="menu-screen" class="container">
-        <h1>🇳🇴 Ordmester</h1>
-        <p style="color:#888; margin-bottom: 30px;">Lær synonymer og antonymer</p>
+        <h1>🇳🇴 Norsk Ordmester</h1>
+        <p style="color:#888; margin-bottom: 30px;">Øv på de 100 vanligste synonymene!</p>
         <button class="btn menu-btn btn-synonym" onclick="startGame('synonym')">Synonymer</button>
         <button class="btn menu-btn btn-antonym" onclick="startGame('antonym')">Antonymer</button>
     </div>
@@ -209,91 +209,59 @@
     </div>
 
     <script>
-        /* --- DATABASE --- */
+        /* --- DATABASEN FRA YOUTUBE-VIDEOEN --- */
+        /* Merk: Videoen hadde kun synonymer. Antonymer er lagt til manuelt for spillfunksjonalitet. */
         const wordDatabase = [
-            // ADJEKTIVER
-            { ord: "Glad", synonym: "Munter", antonym: "Trist" },
-            { ord: "Stor", synonym: "Svær", antonym: "Liten" },
-            { ord: "Varm", synonym: "Het", antonym: "Kald" },
-            { ord: "Rask", synonym: "Hurtig", antonym: "Treg" },
-            { ord: "Pen", synonym: "Vakker", antonym: "Stygg" },
-            { ord: "Rik", synonym: "Velstående", antonym: "Fattig" },
-            { ord: "Billig", synonym: "Rimelig", antonym: "Dyr" },
-            { ord: "Sulten", synonym: "Skrubbsulten", antonym: "Mett" },
-            { ord: "Høy", synonym: "Lang", antonym: "Lav" },
-            { ord: "Vanskelig", synonym: "Krevende", antonym: "Enkel" },
-            { ord: "Lett", synonym: "Enkel", antonym: "Tung" },
-            { ord: "Modig", synonym: "Tapper", antonym: "Feig" },
-            { ord: "Kjedelig", synonym: "Ensformig", antonym: "Spennende" },
-            { ord: "Stille", synonym: "Rolig", antonym: "Bråkete" },
-            { ord: "Smart", synonym: "Intelligent", antonym: "Dum" },
-            { ord: "Ren", synonym: "Plettfri", antonym: "Skitten" },
-            { ord: "Sterk", synonym: "Kraftig", antonym: "Svak" },
-            { ord: "Farlig", synonym: "Risikabel", antonym: "Trygg" },
-            { ord: "Snill", synonym: "Greie", antonym: "Slem" },
-            { ord: "Våt", synonym: "Fuktig", antonym: "Tørr" },
-            { ord: "Lovlig", synonym: "Tillatt", antonym: "Ulovlig" },
-            { ord: "Sann", synonym: "Ekte", antonym: "Usann" },
-            { ord: "Frisk", synonym: "Sunn", antonym: "Syk" },
-            { ord: "Søt", synonym: "Sukret", antonym: "Sur" },
-            { ord: "Mørk", synonym: "Dyster", antonym: "Lys" },
-            { ord: "Først", synonym: "Innledende", antonym: "Sist" },
-            { ord: "Tidlig", synonym: "Før", antonym: "Sent" },
-            { ord: "Gammel", synonym: "Eldre", antonym: "Ung" },
-            { ord: "Ny", synonym: "Fersk", antonym: "Brukt" },
-            { ord: "Myk", synonym: "Bløt", antonym: "Hard" },
-            { ord: "Levende", synonym: "I live", antonym: "Død" },
-            { ord: "Positiv", synonym: "Optimistisk", antonym: "Negativ" },
-            { ord: "Nær", synonym: "Tett på", antonym: "Fjern" },
-            { ord: "Sikker", synonym: "Trygg", antonym: "Usikker" },
-            { ord: "Morsom", synonym: "Artig", antonym: "Alvorlig" },
-            { ord: "Lat", synonym: "Bedagelig", antonym: "Flittig" },
-            { ord: "Tom", synonym: "Innholdsløs", antonym: "Full" },
-            { ord: "Bred", synonym: "Vid", antonym: "Smal" },
-            { ord: "Gal", synonym: "Sprø", antonym: "Normal" },
-            { ord: "Klar", synonym: "Tydelig", antonym: "Uklar" },
-            { ord: "Mett", synonym: "Forsynt", antonym: "Sulten" },
-            { ord: "Åpen", synonym: "Tilgjengelig", antonym: "Stengt" },
-            { ord: "Hele", synonym: "Alt", antonym: "Halve" },
-            { ord: "Gratis", synonym: "Kostnadsfri", antonym: "Betalt" },
-            { ord: "Travel", synonym: "Opptatt", antonym: "Ledig" },
-            // VERB
-            { ord: "Begynne", synonym: "Starte", antonym: "Slutte" },
-            { ord: "Bygge", synonym: "Konstruere", antonym: "Rive" },
-            { ord: "Kjøpe", synonym: "Handle", antonym: "Selge" },
-            { ord: "Løpe", synonym: "Springe", antonym: "Gå" },
-            { ord: "Åpne", synonym: "Lukke opp", antonym: "Lukke" },
-            { ord: "Gi", synonym: "Overrekke", antonym: "Få" },
-            { ord: "Vinne", synonym: "Seire", antonym: "Tape" },
-            { ord: "Huske", synonym: "Minnes", antonym: "Glemme" },
-            { ord: "Elske", synonym: "Holde av", antonym: "Hate" },
-            { ord: "Øke", synonym: "Stige", antonym: "Minke" },
-            { ord: "Spørre", synonym: "Undre", antonym: "Svare" },
-            { ord: "Finne", synonym: "Oppdage", antonym: "Miste" },
-            { ord: "Komme", synonym: "Ankomme", antonym: "Dra" },
-            { ord: "Le", synonym: "Flire", antonym: "Gråte" },
-            { ord: "Sovne", synonym: "Slokne", antonym: "Våkne" },
-            { ord: "Fryse", synonym: "Ise", antonym: "Svette" },
-            { ord: "Sitte", synonym: "Slå seg ned", antonym: "Stå" },
-            { ord: "Snakke", synonym: "Prate", antonym: "Tie" },
-            // SUBSTANTIVER
-            { ord: "Venn", synonym: "Kamerat", antonym: "Fiende" },
-            { ord: "Dag", synonym: "Døgn", antonym: "Natt" },
-            { ord: "Sannhet", synonym: "Fakta", antonym: "Løgn" },
-            { ord: "Suksess", synonym: "Medgang", antonym: "Fiasko" },
-            { ord: "Spørsmål", synonym: "Problemstilling", antonym: "Svar" },
-            { ord: "Kjærlighet", synonym: "Omtanke", antonym: "Hat" },
-            { ord: "Fremtid", synonym: "Morgendagen", antonym: "Fortid" },
-            { ord: "Fred", synonym: "Ro", antonym: "Krig" },
-            { ord: "Fordel", synonym: "Gevinst", antonym: "Ulempe" },
-            { ord: "Mann", synonym: "Herre", antonym: "Kvinne" },
-            { ord: "Sommer", synonym: "Den lyse årstid", antonym: "Vinter" },
-            { ord: "Himmel", synonym: "Paradis", antonym: "Helvete" },
-            { ord: "Start", synonym: "Begynnelse", antonym: "Slutt" },
-            { ord: "Topp", synonym: "Tind", antonym: "Bunn" },
-            { ord: "Glede", synonym: "Fryd", antonym: "Sorg" },
-            { ord: "Dugnad", synonym: "Fellesinnsats", antonym: "Egoisme" },
-            { ord: "Inngang", synonym: "Entré", antonym: "Utgang" }
+            { ord: "Alle steder", synonym: "Overalt", antonym: "Ingen steder" },
+            { ord: "Jobb", synonym: "Arbeid", antonym: "Fritid" },
+            { ord: "Fri", synonym: "Ledig", antonym: "Opptatt" },
+            { ord: "Ferdig", synonym: "Fullført", antonym: "Uferdig" },
+            { ord: "Ta pause", synonym: "Hvile litt", antonym: "Jobbe videre" },
+            { ord: "Gå hjem", synonym: "Dra hjem", antonym: "Bli igjen" },
+            { ord: "Se etter", synonym: "Lete etter", antonym: "Ignorere" },
+            { ord: "Ta vare på", synonym: "Passe på", antonym: "Vanskjøtte" },
+            { ord: "Slappe av", synonym: "Hvile seg", antonym: "Stresse" },
+            { ord: "Glad i", synonym: "Elske", antonym: "Hate" },
+            { ord: "Møte opp", synonym: "Komme til", antonym: "Utebli" },
+            { ord: "Ta del i", synonym: "Delta i", antonym: "Stå utenfor" },
+            { ord: "Være enig", synonym: "Ha samme mening", antonym: "Være uenig" },
+            { ord: "Lære om", synonym: "Få kunnskap", antonym: "Glemme" },
+            { ord: "Sette pris på", synonym: "Verdsette", antonym: "Mislike" },
+            { ord: "Bry seg om", synonym: "Være opptatt av", antonym: "Gi blaffen" },
+            { ord: "Kaste bort", synonym: "Sløse med", antonym: "Spare" },
+            { ord: "Ta hensyn til", synonym: "Vise omtanke", antonym: "Være hensynsløs" },
+            { ord: "Plukke opp", synonym: "Samle inn", antonym: "Kaste fra seg" },
+            { ord: "Bidra til", synonym: "Hjelpe til med", antonym: "Motarbeide" },
+            { ord: "Spise sunt", synonym: "Ha sunt kosthold", antonym: "Spise usunt" },
+            { ord: "Holde seg i form", synonym: "Trene ofte", antonym: "Forfalle" },
+            { ord: "Bli bedre", synonym: "Komme seg", antonym: "Bli verre" },
+            { ord: "Være syk", synonym: "Føle seg dårlig", antonym: "Være frisk" },
+            { ord: "Slutte", synonym: "Legge opp", antonym: "Begynne" },
+            { ord: "Komme fram", synonym: "Ankomme", antonym: "Dra" },
+            { ord: "Bestille", synonym: "Reservere", antonym: "Avbestille" },
+            { ord: "Starte", synonym: "Begynne", antonym: "Slutte" },
+            { ord: "Tjene penger", synonym: "Få inntekt", antonym: "Bruke penger" },
+            { ord: "Få jobb", synonym: "Bli ansatt", antonym: "Miste jobben" },
+            { ord: "Si opp", synonym: "Slutte i jobben", antonym: "Bli ansatt" },
+            { ord: "Møte frist", synonym: "Rekke tiden", antonym: "Komme for sent" },
+            { ord: "Stemme", synonym: "Delta i valg", antonym: "La være" },
+            { ord: "Diskutere", synonym: "Snakke om", antonym: "Tie stille" },
+            { ord: "Være uenig", synonym: "Ha annen mening", antonym: "Være enig" },
+            { ord: "Gjøre en forskjell", synonym: "Bidra positivt", antonym: "Være passiv" },
+            { ord: "Føle seg bra", synonym: "Ha det godt", antonym: "Føle seg dårlig" },
+            { ord: "Sove godt", synonym: "Få nok søvn", antonym: "Sove dårlig" },
+            { ord: "Være avslappet", synonym: "Føle seg rolig", antonym: "Være stresset" },
+            { ord: "Beskytte", synonym: "Ta vare på", antonym: "Ødelegge" },
+            { ord: "Gjenvinne", synonym: "Resirkulere", antonym: "Kaste i søpla" },
+            { ord: "Reise langt", synonym: "Dra langt", antonym: "Bli hjemme" },
+            { ord: "Planlegge", synonym: "Forberede", antonym: "Ta på sparket" },
+            { ord: "Være sliten", synonym: "Føle seg utmattet", antonym: "Være opplagt" },
+            { ord: "Ta en dusj", synonym: "Vaske seg", antonym: "Bli skitten" },
+            { ord: "Være sikker", synonym: "Føle seg trygg", antonym: "Være usikker" },
+            { ord: "Være flink", synonym: "Være dyktig", antonym: "Være udugelig" },
+            { ord: "Huske", synonym: "Komme på", antonym: "Glemme" },
+            { ord: "Finne ut", synonym: "Oppdage", antonym: "Overse" },
+            { ord: "Kjenne til", synonym: "Vite om", antonym: "Være ukjent med" }
         ];
 
         /* --- LOGIKK --- */
@@ -301,8 +269,8 @@
         let score = 0;
         let level = 1;
         let streak = 0;
-        let pointsToNextLevel = 100; // Hvor mange poeng per level
-        let currentLevelScore = 0;   // Poeng i nåværende level
+        let pointsToNextLevel = 100;
+        let currentLevelScore = 0;
 
         function startGame(mode) {
             currentMode = mode;
@@ -345,7 +313,7 @@
                 btn.className = 'btn';
                 btn.innerText = opt;
                 
-                // Fargekode basert på modus
+                // Fargekode
                 if(currentMode === 'synonym') btn.classList.add('btn-synonym');
                 else btn.classList.add('btn-antonym');
 
@@ -355,7 +323,6 @@
         }
 
         function checkAnswer(selected, correct, btnElem, event) {
-            // Lås knapper
             const allBtns = document.querySelectorAll('#options-container .btn');
             allBtns.forEach(b => b.disabled = true);
 
@@ -381,7 +348,7 @@
                 allBtns.forEach(b => {
                     if (b.innerText === correct) {
                         b.classList.add('correct-anim');
-                        b.style.opacity = "0.7"; // Vis hva som var rett
+                        b.style.opacity = "0.7"; 
                     }
                 });
 
@@ -393,7 +360,6 @@
         function levelUp() {
             level++;
             currentLevelScore = 0;
-            // Vis level up modal
             document.getElementById('new-level-num').innerText = level;
             setTimeout(() => {
                 document.getElementById('levelup-modal').classList.remove('hidden');
@@ -410,13 +376,11 @@
             document.getElementById('score-display').innerText = score + " p";
             document.getElementById('level-display').innerText = "Nivå " + level;
             
-            // Oppdater streak
             const streakElem = document.getElementById('streak-display');
             streakElem.innerText = "🔥 " + streak;
             if(streak > 1) streakElem.classList.add('streak-visible');
             else streakElem.classList.remove('streak-visible');
 
-            // Oppdater progress bar
             const percentage = (currentLevelScore / pointsToNextLevel) * 100;
             document.getElementById('progress-fill').style.height = percentage + "%";
         }
