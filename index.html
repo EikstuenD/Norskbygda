@@ -1,281 +1,87 @@
-<!DOCTYPE html>
-<html lang="no">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Norsk Ordmester</title>
-    <style>
-        /* CSS - Utseende og Design */
-        :root {
-            --primary: #4a90e2;
-            --secondary: #50e3c2;
-            --bg: #f4f7f6;
-            --text: #333;
-            --wrong: #e74c3c;
-            --correct: #2ecc71;
-        }
-
-        body {
-            font-family: 'Helvetica Neue', sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            text-align: center;
-            overflow: hidden; /* Hindrer scrolling på iPad */
-        }
-
-        h1 { font-size: 2.5rem; margin-bottom: 10px; }
-        h2 { color: #666; font-weight: normal; margin-top: 0; }
-
-        .container {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            width: 90%;
-            max-width: 500px;
-        }
-
-        /* Knapper */
-        .btn {
-            display: block;
-            width: 100%;
-            padding: 15px;
-            margin: 10px 0;
-            font-size: 1.2rem;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: transform 0.1s, background 0.2s;
-            background-color: var(--primary);
-            color: white;
-        }
-
-        .btn:active { transform: scale(0.98); }
-        .btn-secondary { background-color: #999; }
-        
-        /* Spill-elementer */
-        .stat-bar {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            font-weight: bold;
-            font-size: 1.1rem;
-            color: var(--primary);
-        }
-
-        .word-display {
-            font-size: 2.5rem;
-            font-weight: bold;
-            margin: 30px 0;
-            color: #2c3e50;
-        }
-
-        .options-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-
-        .hidden { display: none; }
-
-        /* Feedback farger */
-        .btn.correct { background-color: var(--correct) !important; }
-        .btn.wrong { background-color: var(--wrong) !important; }
-
-    </style>
-</head>
-<body>
-
-    <div id="menu-screen" class="container">
-        <h1>Norsk Ordmester</h1>
-        <h2>Velg hva du vil øve på</h2>
-        <button class="btn" onclick="startGame('synonym')">Synonymer (Lik betydning)</button>
-        <button class="btn" onclick="startGame('antonym')">Antonymer (Motsetninger)</button>
-    </div>
-
-    <div id="game-screen" class="container hidden">
-        <div class="stat-bar">
-            <span id="level-display">Level: 1</span>
-            <span id="score-display">Poeng: 0</span>
-        </div>
-        
-        <h2 id="question-type-text">Finn synonymet til:</h2>
-        <div id="current-word" class="word-display">ORDET</div>
-        
-        <div id="options-container" class="options-grid">
-            </div>
-
-        <button class="btn btn-secondary" style="margin-top:20px;" onclick="goToMenu()">Avslutt</button>
-    </div>
-
-    <script>
-        /* JAVASCRIPT - Logikk og Database */
-
-        // 1. DATABASEN (Kan utvides med tusenvis av ord)
-        // Format: { ord: "X", synonym: "Y", antonym: "Z" }
-        const wordDatabase = [
-            { ord: "Vanskelig", synonym: "Krevende", antonym: "Lett" },
-            { ord: "Modig", synonym: "Tapper", antonym: "Feig" },
-            { ord: "Huske", synonym: "Minnes", antonym: "Glemme" },
-            { ord: "Fin", synonym: "Vakker", antonym: "Stygg" },
-            { ord: "Kjøpe", synonym: "Handle", antonym: "Selge" },
-            { ord: "Alltid", synonym: "Bestandig", antonym: "Aldri" },
-            { ord: "Kjedelig", synonym: "Ensformig", antonym: "Gøy" },
-            { ord: "Bygge", synonym: "Konstruere", antonym: "Rive" },
-            { ord: "Stille", synonym: "Rolig", antonym: "Bråkete" },
-            { ord: "Suksess", synonym: "Medgang", antonym: "Fiasko" },
-            { ord: "Smart", synonym: "Klok", antonym: "Dum" },
-            { ord: "Skitne", synonym: "Tilgriset", antonym: "Rene" },
-            { ord: "Løpe", synonym: "Springe", antonym: "Gå" },
-            { ord: "Sterk", synonym: "Kraftig", antonym: "Svak" },
-            { ord: "Spørsmål", synonym: "Undring", antonym: "Svar" },
-            { ord: "Mye", synonym: "En mengde", antonym: "Lite" },
-            { ord: "Åpne", synonym: "Lukke opp", antonym: "Stenge" },
-            { ord: "Dag", synonym: "Døgn", antonym: "Natt" },
-            { ord: "Farlig", synonym: "Risikabelt", antonym: "Trygt" },
-            { ord: "Snill", synonym: "Vennlig", antonym: "Slem" },
-            { ord: "Våt", synonym: "Gjennomvåt", antonym: "Tørr" },
-            { ord: "Forbudt", synonym: "Ulovlig", antonym: "Tillatt" },
-            { ord: "Gi", synonym: "Overrekke", antonym: "Ta" },
-            { ord: "Sannhet", synonym: "Fakta", antonym: "Løgn" },
-            { ord: "Frisk", synonym: "Sunn", antonym: "Syk" },
-            { ord: "Vinne", synonym: "Seire", antonym: "Tape" },
-            { ord: "Søt", synonym: "Sukret", antonym: "Sur" },
-            { ord: "Mørk", synonym: "Dyster", antonym: "Lys" },
-            { ord: "Høy", synonym: "Ruvedne", antonym: "Lav" },
-            { ord: "Først", synonym: "Innledende", antonym: "Sist" },
-            { ord: "Tidlig", synonym: "Morgenstund", antonym: "Sent" },
-            { ord: "Kjærlighet", synonym: "Omtanke", antonym: "Hat" },
-            { ord: "Gammel", synonym: "Aldrende", antonym: "Ung" },
-            { ord: "Ny", synonym: "Fersk", antonym: "Brukt" },
-            { ord: "Smil", synonym: "Glis", antonym: "Gråt" },
-            { ord: "Himmel", synonym: "Firmament", antonym: "Helvete" }, 
-            { ord: "Opp", synonym: "Oppe", antonym: "Ned" },
-            { ord: "Venstre", synonym: "Babord", antonym: "Høyre" },
-            { ord: "Mette", synonym: "Forsynte", antonym: "Sultne" },
-            { ord: "Kald", synonym: "Kjølig", antonym: "Varm" },
-            { ord: "Lang", synonym: "Utstrakt", antonym: "Kort" },
-            { ord: "Bred", synonym: "Vid", antonym: "Smal" },
-            { ord: "Tung", synonym: "Vektig", antonym: "Lett" },
-            { ord: "Myk", synonym: "Bløt", antonym: "Hard" },
-            { ord: "Levende", synonym: "I live", antonym: "Død" },
-            { ord: "Fremtid", synonym: "Morgendagen", antonym: "Fortid" },
-            { ord: "Positiv", synonym: "Optimistisk", antonym: "Negativ" },
-            { ord: "Latter", synonym: "Fliring", antonym: "Gråt" },
-            { ord: "Sitte", synonym: "Hvile", antonym: "Stå" },
-            { ord: "Nær", synonym: "Tett på", antonym: "Fjern" }
-        ];
-
-        // Variabler for spillets tilstand
-        let currentMode = ''; // 'synonym' eller 'antonym'
-        let score = 0;
-        let level = 1;
-        let currentQuestion = {};
-
-        // Funksjon for å starte spillet
-        function startGame(mode) {
-            currentMode = mode;
-            score = 0;
-            level = 1;
-            updateStats();
-            
-            // Vis spillskjerm, skjul meny
-            document.getElementById('menu-screen').classList.add('hidden');
-            document.getElementById('game-screen').classList.remove('hidden');
-            
-            // Sett overskrift
-            const title = mode === 'synonym' ? "Finn synonymet til:" : "Finn det motsatte av:";
-            document.getElementById('question-type-text').innerText = title;
-
-            nextQuestion();
-        }
-
-        // Funksjon for å lage ny oppgave
-        function nextQuestion() {
-            // Velg et tilfeldig ord fra databasen
-            const randomIndex = Math.floor(Math.random() * wordDatabase.length);
-            currentQuestion = wordDatabase[randomIndex];
-            
-            // Vis ordet
-            document.getElementById('current-word').innerText = currentQuestion.ord;
-
-            // Finn riktig svar
-            const correctAnswer = currentQuestion[currentMode]; // Henter enten synonym eller antonym
-
-            // Finn 3 gale svar (tilfeldige andre ord fra databasen)
-            let wrongAnswers = [];
-            while(wrongAnswers.length < 3) {
-                const randomWrong = wordDatabase[Math.floor(Math.random() * wordDatabase.length)];
-                const wrongWord = randomWrong[currentMode];
-                // Sjekk at vi ikke velger riktig svar eller duplikater
-                if(wrongWord !== correctAnswer && !wrongAnswers.includes(wrongWord)) {
-                    wrongAnswers.push(wrongWord);
-                }
-            }
-
-            // Bland riktig svar med gale svar
-            let options = [...wrongAnswers, correctAnswer];
-            options.sort(() => Math.random() - 0.5); // Random shuffle
-
-            // Tegn opp knappene
-            const container = document.getElementById('options-container');
-            container.innerHTML = ''; // Tøm gamle knapper
-
-            options.forEach(opt => {
-                const btn = document.createElement('button');
-                btn.className = 'btn';
-                btn.innerText = opt;
-                btn.onclick = () => checkAnswer(opt, correctAnswer, btn);
-                container.appendChild(btn);
-            });
-        }
-
-        // Funksjon for å sjekke svar
-        function checkAnswer(selected, correct, btnElement) {
-            // Deaktiver alle knapper så man ikke kan trykke to ganger
-            const allBtns = document.querySelectorAll('#options-container .btn');
-            allBtns.forEach(b => b.disabled = true);
-
-            if (selected === correct) {
-                // RIKTIG SVAR
-                btnElement.classList.add('correct');
-                score += 10;
-                
-                // Level opp for hvert 50. poeng
-                if (score > 0 && score % 50 === 0) {
-                    level++;
-                    alert("Gratulerer! Du har nådd Level " + level + "!");
-                }
-                
-                setTimeout(nextQuestion, 1000); // Vent 1 sekund før neste
-            } else {
-                // GALT SVAR
-                btnElement.classList.add('wrong');
-                // Marker det som var riktig for læringseffekt
-                allBtns.forEach(b => {
-                    if(b.innerText === correct) b.classList.add('correct');
-                });
-                
-                setTimeout(nextQuestion, 2000); // Vent 2 sekunder for å se feilen
-            }
-            updateStats();
-        }
-
-        function updateStats() {
-            document.getElementById('score-display').innerText = "Poeng: " + score;
-            document.getElementById('level-display').innerText = "Level: " + level;
-        }
-
-        function goToMenu() {
-            document.getElementById('game-screen').classList.add('hidden');
-            document.getElementById('menu-screen').classList.remove('hidden');
-        }
-    </script>
-</body>
-</html>
+const wordDatabase = [
+    // --- ADJEKTIVER (Beskrivende ord) ---
+    { ord: "Glad", synonym: "Munter", antonym: "Trist" },
+    { ord: "Stor", synonym: "Svær", antonym: "Liten" },
+    { ord: "Varm", synonym: "Het", antonym: "Kald" },
+    { ord: "Rask", synonym: "Hurtig", antonym: "Treg" },
+    { ord: "Pen", synonym: "Vakker", antonym: "Stygg" },
+    { ord: "Rik", synonym: "Velstående", antonym: "Fattig" },
+    { ord: "Billig", synonym: "Rimelig", antonym: "Dyr" },
+    { ord: "Sulten", synonym: "Skrubbsulten", antonym: "Mett" },
+    { ord: "Høy", synonym: "Lang", antonym: "Lav" },
+    { ord: "Vanskelig", synonym: "Krevende", antonym: "Enkel" },
+    { ord: "Lett", synonym: "Enkel", antonym: "Tung" },
+    { ord: "Modig", synonym: "Tapper", antonym: "Feig" },
+    { ord: "Kjedelig", synonym: "Ensformig", antonym: "Spennende" },
+    { ord: "Stille", synonym: "Rolig", antonym: "Bråkete" },
+    { ord: "Smart", synonym: "Intelligent", antonym: "Dum" },
+    { ord: "Ren", synonym: "Plettfri", antonym: "Skitten" },
+    { ord: "Sterk", synonym: "Kraftig", antonym: "Svak" },
+    { ord: "Farlig", synonym: "Risikabel", antonym: "Trygg" },
+    { ord: "Snill", synonym: "Greie", antonym: "Slem" },
+    { ord: "Våt", synonym: "Fuktig", antonym: "Tørr" },
+    { ord: "Lovlig", synonym: "Tillatt", antonym: "Ulovlig" },
+    { ord: "Sann", synonym: "Ekte", antonym: "Usann" },
+    { ord: "Frisk", synonym: "Sunn", antonym: "Syk" },
+    { ord: "Søt", synonym: "Sukret", antonym: "Sur" },
+    { ord: "Mørk", synonym: "Dyster", antonym: "Lys" },
+    { ord: "Først", synonym: "Innledende", antonym: "Sist" },
+    { ord: "Tidlig", synonym: "Før", antonym: "Sent" },
+    { ord: "Gammel", synonym: "Eldre", antonym: "Ung" },
+    { ord: "Ny", synonym: "Fersk", antonym: "Brukt" },
+    { ord: "Myk", synonym: "Bløt", antonym: "Hard" },
+    { ord: "Levende", synonym: "I live", antonym: "Død" },
+    { ord: "Positiv", synonym: "Optimistisk", antonym: "Negativ" },
+    { ord: "Nær", synonym: "Tett på", antonym: "Fjern" },
+    { ord: "Sikker", synonym: "Trygg", antonym: "Usikker" },
+    { ord: "Morsom", synonym: "Artig", antonym: "Alvorlig" },
+    { ord: "Lat", synonym: "Bedagelig", antonym: "Flittig" },
+    { ord: "Tom", synonym: "Innholdsløs", antonym: "Full" },
+    { ord: "Bred", synonym: "Vid", antonym: "Smal" },
+    { ord: "Gal", synonym: "Sprø", antonym: "Normal" },
+    { ord: "Klar", synonym: "Tydelig", antonym: "Uklar" },
+    { ord: "Mett", synonym: "Forsynt", antonym: "Sulten" },
+    { ord: "Åpen", synonym: "Tilgjengelig", antonym: "Stengt" },
+    { ord: "Hele", synonym: "Alt", antonym: "Halve" },
+    { ord: "Gratis", synonym: "Kostnadsfri", antonym: "Betalt" },
+    { ord: "Travel", synonym: "Opptatt", antonym: "Ledig" },
+    
+    // --- VERB (Handlinger) ---
+    { ord: "Begynne", synonym: "Starte", antonym: "Slutte" },
+    { ord: "Bygge", synonym: "Konstruere", antonym: "Rive" },
+    { ord: "Kjøpe", synonym: "Handle", antonym: "Selge" },
+    { ord: "Løpe", synonym: "Springe", antonym: "Gå" },
+    { ord: "Åpne", synonym: "Lukke opp", antonym: "Lukke" },
+    { ord: "Gi", synonym: "Overrekke", antonym: "Få" },
+    { ord: "Vinne", synonym: "Seire", antonym: "Tape" },
+    { ord: "Huske", synonym: "Minnes", antonym: "Glemme" },
+    { ord: "Elske", synonym: "Holde av", antonym: "Hate" },
+    { ord: "Øke", synonym: "Stige", antonym: "Minke" },
+    { ord: "Spørre", synonym: "Undre", antonym: "Svare" },
+    { ord: "Finne", synonym: "Oppdage", antonym: "Miste" },
+    { ord: "Komme", synonym: "Ankomme", antonym: "Dra" },
+    { ord: "Le", synonym: "Flire", antonym: "Gråte" },
+    { ord: "Sovne", synonym: "Slokne", antonym: "Våkne" },
+    { ord: "Fryse", synonym: "Ise", antonym: "Svette" },
+    { ord: "Sitte", synonym: "Slå seg ned", antonym: "Stå" },
+    { ord: "Snakke", synonym: "Prate", antonym: "Tie" },
+    
+    // --- SUBSTANTIVER (Ting/Begreper) ---
+    { ord: "Venn", synonym: "Kamerat", antonym: "Fiende" },
+    { ord: "Dag", synonym: "Døgn", antonym: "Natt" },
+    { ord: "Sannhet", synonym: "Fakta", antonym: "Løgn" },
+    { ord: "Suksess", synonym: "Medgang", antonym: "Fiasko" },
+    { ord: "Spørsmål", synonym: "Problemstilling", antonym: "Svar" },
+    { ord: "Kjærlighet", synonym: "Omtanke", antonym: "Hat" },
+    { ord: "Fremtid", synonym: "Morgendagen", antonym: "Fortid" },
+    { ord: "Fred", synonym: "Ro", antonym: "Krig" },
+    { ord: "Fordel", synonym: "Gevinst", antonym: "Ulempe" },
+    { ord: "Mann", synonym: "Herre", antonym: "Kvinne" },
+    { ord: "Sommer", synonym: "Den lyse årstid", antonym: "Vinter" },
+    { ord: "Himmel", synonym: "Paradis", antonym: "Helvete" },
+    { ord: "Start", synonym: "Begynnelse", antonym: "Slutt" },
+    { ord: "Topp", synonym: "Tind", antonym: "Bunn" },
+    { ord: "Glede", synonym: "Fryd", antonym: "Sorg" },
+    { ord: "Dugnad", synonym: "Fellesinnsats", antonym: "Egoisme" }, // Veldig norsk!
+    { ord: "Inngang", synonym: "Entré", antonym: "Utgang" }
+];
