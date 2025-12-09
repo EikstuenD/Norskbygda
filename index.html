@@ -3,437 +3,239 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Alkymistens Reise</title>
-    
+    <title>Norsk Ordmester</title>
     <style>
-        /* --- SAMME DESIGN SOM FØR (Med noen justeringer) --- */
+        /* CSS - Utseende og Design */
         :root {
-            --primary-color: #8e44ad;
-            --accent-color: #2ecc71;
-            --text-color: #ecf0f1;
-            --bar-bg: #34495e;
-            --fire-color: #e67e22;
+            --primary: #4a90e2;
+            --secondary: #50e3c2;
+            --bg: #f4f7f6;
+            --text: #333;
+            --wrong: #e74c3c;
+            --correct: #2ecc71;
         }
 
         body {
-            font-family: 'Courier New', Courier, monospace;
-            background: radial-gradient(circle at center, #2b32b2 0%, #1488cc 100%); /* Litt mer magisk blå */
-            background: radial-gradient(circle at center, #2c3e50 0%, #000000 100%);
-            color: var(--text-color);
+            font-family: 'Helvetica Neue', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
             text-align: center;
-            margin: 0; padding: 0; height: 100vh; overflow: hidden; touch-action: manipulation;
+            overflow: hidden; /* Hindrer scrolling på iPad */
         }
 
-        #game-container {
-            max-width: 700px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; justify-content: space-between; position: relative; padding-right: 30px;
+        h1 { font-size: 2.5rem; margin-bottom: 10px; }
+        h2 { color: #666; font-weight: normal; margin-top: 0; }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 500px;
         }
-
-        /* Side-bar XP */
-        .xp-sidebar { position: absolute; right: 0; top: 0; bottom: 0; width: 20px; background: rgba(0,0,0,0.5); border-left: 1px solid #555; display: flex; flex-direction: column; justify-content: flex-end; }
-        .xp-fill { background: linear-gradient(to top, #00f260, #0575e6); width: 100%; height: 0%; transition: height 0.5s ease-out; box-shadow: 0 0 10px #00f260; }
-
-        /* Toppmeny */
-        .top-hud { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: rgba(0,0,0,0.4); border-bottom: 1px solid #555; }
-        .level-badge { width: 55px; height: 55px; background: var(--primary-color); border-radius: 50%; border: 3px solid gold; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 0 15px gold; }
-        .level-text { font-size: 9px; text-transform: uppercase; }
-        .level-num { font-size: 24px; }
-        .total-stats { text-align: left; }
-        .total-val { font-size: 18px; color: #f1c40f; font-weight: bold; }
-
-        /* Startskjerm */
-        .screen { display: none; flex-direction: column; align-items: center; justify-content: center; height: 100%; width: 100%; box-sizing: border-box; }
-        .active { display: flex !important; }
-
-        input { padding: 15px; font-size: 20px; border-radius: 10px; border: 2px solid var(--primary-color); text-align: center; margin-bottom: 20px; width: 80%; }
-        .start-btn { background: linear-gradient(to bottom, #27ae60, #2ecc71); border:none; padding: 15px 50px; font-size: 24px; border-radius: 10px; color: white; font-weight: bold; cursor: pointer; box-shadow: 0 5px #145a32; }
-        .start-btn:active { transform: translateY(4px); box-shadow: none; }
-
-        /* Spill Board */
-        .quest-board { background: #d35400; color: white; padding: 15px; border-radius: 10px; border: 3px solid #a04000; width: 90%; margin-top: 10px; position: relative; }
-        .quest-label { font-size: 12px; text-transform: uppercase; opacity: 0.8; letter-spacing: 2px; }
-        .quest-content { font-size: 28px; font-weight:bold; text-shadow: 2px 2px 0px #000; }
-        
-        /* Gryte */
-        .cauldron-container { position: relative; width: 190px; height: 190px; margin: 10px auto; }
-        .cauldron { width: 100%; height: 100%; background: #222; border-radius: 50%; border: 6px solid #444; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; box-shadow: inset 0 0 30px black; }
-        .liquid { position: absolute; bottom: 0; left: 0; width: 100%; height: 80%; background: var(--accent-color); opacity: 0.9; transition: background 0.3s; }
-        .cauldron-number { position: relative; z-index: 2; font-size: 44px; font-weight: bold; color: #fff; text-shadow: 0 2px 8px #000; }
 
         /* Knapper */
-        .rune-pad { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 20px 20px 0 0; width: 100%; }
-        .ingredient { width: 70px; height: 70px; margin: 6px; background: #8e44ad; border-radius: 12px; border:none; font-size: 28px; color:white; font-weight:bold; cursor:pointer; box-shadow: 0 5px #4a235a; position: relative; }
-        .ingredient:active { transform: translateY(4px); box-shadow: none; }
-        .ingredient.locked { background: #333; color: #555; box-shadow: none; cursor: not-allowed; opacity: 0.5; }
-        
-        .controls { margin-top: 15px; display: flex; justify-content: center; gap: 15px; }
-        .btn-clear { background: #c0392b; color: white; border:none; padding:10px 20px; border-radius:8px; font-size:18px; }
-        .btn-mix { background: #e67e22; color: white; border:none; padding:10px 40px; border-radius:8px; font-size:20px; font-weight:bold; box-shadow: 0 4px #a04000; }
-
-        #feedback-msg { height: 30px; font-weight:bold; color: #f1c40f; margin: 5px; font-size: 18px; }
-
-        /* Level Up Overlay */
-        #levelup-overlay {
-            position: absolute; top:0; left:0; width:100%; height:100%;
-            background: rgba(0,0,0,0.9);
-            display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100;
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.1s, background 0.2s;
+            background-color: var(--primary);
+            color: white;
         }
-        .unlock-icon { font-size: 60px; margin: 20px; animation: bounce 1s infinite alternate; }
-        @keyframes bounce { from {transform: translateY(0);} to {transform: translateY(-10px);} }
+
+        .btn:active { transform: scale(0.98); }
+        .btn-secondary { background-color: #999; }
+        
+        /* Spill-elementer */
+        .stat-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: var(--primary);
+        }
+
+        .word-display {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 30px 0;
+            color: #2c3e50;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .hidden { display: none; }
+
+        /* Feedback farger */
+        .btn.correct { background-color: var(--correct) !important; }
+        .btn.wrong { background-color: var(--wrong) !important; }
 
     </style>
 </head>
 <body>
 
-<div class="xp-sidebar">
-    <div class="xp-fill" id="xp-bar-fill"></div>
-</div>
-
-<div id="game-container">
-    
-    <div class="top-hud" id="hud" style="display:none;">
-        <div class="total-stats">
-            <div style="font-size:10px; color:#aaa;">DIN SCORE</div>
-            <div class="total-val" id="total-xp-display">0</div>
-        </div>
-        <div class="level-badge">
-            <span class="level-text">LEVEL</span>
-            <span class="level-num" id="level-display">1</span>
-        </div>
+    <div id="menu-screen" class="container">
+        <h1>Norsk Ordmester</h1>
+        <h2>Velg hva du vil øve på</h2>
+        <button class="btn" onclick="startGame('synonym')">Synonymer (Lik betydning)</button>
+        <button class="btn" onclick="startGame('antonym')">Antonymer (Motsetninger)</button>
     </div>
 
-    <div id="start-screen" class="screen active">
-        <h1 style="color:#e67e22; text-shadow:0 0 10px #e67e22;">⚗️ Alkymistens<br>Reise</h1>
-        <p>Skriv navnet ditt for å fortsette reisen:</p>
-        
-        <form onsubmit="event.preventDefault(); startGame();" style="width:100%; display:flex; flex-direction:column; align-items:center;">
-            <input type="text" id="player-name" placeholder="Navn..." maxlength="12" autocomplete="off">
-            <div id="start-error" style="color:#e74c3c; min-height:20px;"></div>
-            <button type="submit" class="start-btn">SPILL</button>
-        </form>
-        
-        <div style="margin-top: 30px; font-size: 14px; opacity: 0.6;">
-            Spillet lagrer fremgangen din automatisk.
+    <div id="game-screen" class="container hidden">
+        <div class="stat-bar">
+            <span id="level-display">Level: 1</span>
+            <span id="score-display">Poeng: 0</span>
         </div>
-    </div>
-
-    <div id="game-screen" class="screen">
-        <div class="quest-board">
-            <div class="quest-label">Ditt Oppdrag:</div>
-            <div id="quest-text" class="quest-content">...</div>
-        </div>
-
-        <div class="cauldron-container">
-            <div class="cauldron">
-                <div class="liquid" id="liquid"></div>
-                <div class="cauldron-number" id="current-brew">1</div>
+        
+        <h2 id="question-type-text">Finn synonymet til:</h2>
+        <div id="current-word" class="word-display">ORDET</div>
+        
+        <div id="options-container" class="options-grid">
             </div>
-        </div>
 
-        <div id="feedback-msg"></div>
-
-        <div class="rune-pad">
-            <div style="font-size: 14px; margin-bottom:5px; color:#aaa;">Tilgjengelige ingredienser:</div>
-            <div>
-                <button class="ingredient" onclick="addIngredient(2)">2</button>
-                <button class="ingredient" onclick="addIngredient(3)">3</button>
-                <button class="ingredient" id="btn-5" style="display:none;" onclick="addIngredient(5)">5</button>
-                <button class="ingredient" id="btn-7" style="display:none;" onclick="addIngredient(7)">7</button>
-            </div>
-            <div class="controls">
-                <button class="btn-clear" onclick="clearCauldron()">Tøm</button>
-                <button class="btn-mix" onclick="submitBrew()">BLAND!</button>
-            </div>
-        </div>
+        <button class="btn btn-secondary" style="margin-top:20px;" onclick="goToMenu()">Avslutt</button>
     </div>
 
-    <div id="levelup-overlay" onclick="closeLevelUp()">
-        <h1 style="color: gold; font-size: 40px; margin:0;">LEVEL UP!</h1>
-        <h2 style="color: white; margin-top:5px;">Du er nå Level <span id="new-level-num">2</span></h2>
-        
-        <div id="unlock-message" style="text-align:center; color:#2ecc71; font-size:20px; font-weight:bold; margin:20px;"></div>
-        
-        <p style="color: #ccc; margin-top:40px;">Trykk hvor som helst for å fortsette</p>
-    </div>
+    <script>
+        /* JAVASCRIPT - Logikk og Database */
 
-    <div id="end-screen" class="screen">
-        <h1 style="color:gold">Runde fullført!</h1>
-        <p>Du fikk:</p>
-        <h2 style="font-size: 40px; color: #2ecc71;" id="round-score">0 XP</h2>
-        <button class="start-btn" onclick="startGame()">Neste Runde</button>
-    </div>
+        // 1. DATABASEN (Kan utvides med tusenvis av ord)
+        // Format: { ord: "X", synonym: "Y", antonym: "Z" }
+        const wordDatabase = [
+            { ord: "Glad", synonym: "Lykkelig", antonym: "Trist" },
+            { ord: "Stor", synonym: "Svær", antonym: "Liten" },
+            { ord: "Varm", synonym: "Het", antonym: "Kald" },
+            { ord: "Rask", synonym: "Hurtig", antonym: "Sen" },
+            { ord: "Begynne", synonym: "Starte", antonym: "Slutte" },
+            { ord: "Venn", synonym: "Kamerat", antonym: "Fiende" },
+            { ord: "Rik", synonym: "Velstående", antonym: "Fattig" },
+            { ord: "Billig", synonym: "Rimelig", antonym: "Dyr" },
+            { ord: "Sulten", synonym: "Mathungrig", antonym: "Mett" },
+            { ord: "Høy", synonym: "Ruvedne", antonym: "Lav" }
+        ];
 
-</div>
+        // Variabler for spillets tilstand
+        let currentMode = ''; // 'synonym' eller 'antonym'
+        let score = 0;
+        let level = 1;
+        let currentQuestion = {};
 
-<script>
-    // --- VARIABLER ---
-    let playerName = "";
-    let totalXP = 0;
-    let currentLevel = 1;
-    let xpForNextLevel = 100;
-    
-    // Runde variabler
-    let currentBrew = 1;
-    let targetNumber = 0; // Svaret vi skal frem til (f.eks. 20)
-    let questionsAnswered = 0;
-    const questionsPerRound = 5; // Kortere runder for hyppigere feedback
+        // Funksjon for å starte spillet
+        function startGame(mode) {
+            currentMode = mode;
+            score = 0;
+            level = 1;
+            updateStats();
+            
+            // Vis spillskjerm, skjul meny
+            document.getElementById('menu-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            
+            // Sett overskrift
+            const title = mode === 'synonym' ? "Finn synonymet til:" : "Finn det motsatte av:";
+            document.getElementById('question-type-text').innerText = title;
 
-    // --- OPPSTART ---
-    
-    // Sjekk om det finnes lagret data
-    if(localStorage.getItem('alkymi_journey_xp')) {
-        totalXP = parseInt(localStorage.getItem('alkymi_journey_xp'));
-        calculateLevel(); 
-    }
-
-    function calculateLevel() {
-        // Enkel level kurve: Level * 150 xp
-        // Level 1: 0 - 150
-        // Level 2: 150 - 300
-        // Level 3: 300 - 450 ...
-        let lvl = 1;
-        let required = 150;
-        let tempXP = totalXP;
-
-        while (tempXP >= required) {
-            tempXP -= required;
-            lvl++;
-            // required += 50; // Øker kravet litt for hvert level hvis man vil
-        }
-        currentLevel = lvl;
-        
-        // Oppdater bar
-        let percent = (tempXP / required) * 100;
-        document.getElementById('xp-bar-fill').style.height = percent + "%";
-        
-        updateHUD();
-    }
-
-    function updateHUD() {
-        document.getElementById('total-xp-display').innerText = totalXP;
-        document.getElementById('level-display').innerText = currentLevel;
-    }
-
-    // --- SPILL START ---
-
-    function startGame() {
-        const input = document.getElementById('player-name');
-        if(!input.value.trim()) {
-            document.getElementById('start-error').innerText = "Skriv navnet ditt!";
-            return;
-        }
-        playerName = input.value.trim();
-        questionsAnswered = 0;
-        document.getElementById('hud').style.display = 'flex';
-        switchScreen('game-screen');
-        newQuest();
-    }
-
-    function switchScreen(id) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-    }
-
-    // --- HOVEDLOGIKK FOR OPPGAVER ---
-
-    function newQuest() {
-        if(questionsAnswered >= questionsPerRound) {
-            endRound();
-            return;
-        }
-        
-        clearCauldron();
-        configureIngredients(); // Vis/skjul knapper basert på level
-        
-        // 1. GENERER SVARET (TargetNumber) basert på level
-        targetNumber = generateTargetByLevel(currentLevel);
-
-        // 2. GENERER SPØRSMÅLET (Quest Text)
-        // På level 6+ blander vi inn brøk/prosent
-        let questText = "";
-        
-        if (currentLevel >= 6) {
-            questText = generateComplexQuest(targetNumber);
-        } else {
-            // Standard oppgave
-            questText = "Lag tallet " + targetNumber;
+            nextQuestion();
         }
 
-        document.getElementById('quest-text').innerText = questText;
-    }
+        // Funksjon for å lage ny oppgave
+        function nextQuestion() {
+            // Velg et tilfeldig ord fra databasen
+            const randomIndex = Math.floor(Math.random() * wordDatabase.length);
+            currentQuestion = wordDatabase[randomIndex];
+            
+            // Vis ordet
+            document.getElementById('current-word').innerText = currentQuestion.ord;
 
-    function configureIngredients() {
-        // Skjul alt først
-        document.getElementById('btn-5').style.display = 'none';
-        document.getElementById('btn-7').style.display = 'none';
+            // Finn riktig svar
+            const correctAnswer = currentQuestion[currentMode]; // Henter enten synonym eller antonym
 
-        // Lås opp basert på level
-        if (currentLevel >= 2) document.getElementById('btn-5').style.display = 'inline-block';
-        if (currentLevel >= 4) document.getElementById('btn-7').style.display = 'inline-block';
-    }
-
-    function generateTargetByLevel(lvl) {
-        let primes = [2, 3];
-        let maxVal = 20;
-        
-        // Level 2: Lås opp 5
-        if (lvl >= 2) { primes = [2, 3, 5]; maxVal = 50; }
-        // Level 3: Vanskeligere
-        if (lvl >= 3) { maxVal = 80; }
-        // Level 4: Lås opp 7
-        if (lvl >= 4) { primes = [2, 3, 5, 7]; maxVal = 100; }
-        // Level 5+: Store tall
-        if (lvl >= 5) { maxVal = 150; }
-        // Level 6+: Tall som passer til prosent/brøk (må være delelig på 2, 4, 10 etc)
-        if (lvl >= 6) { maxVal = 200; }
-
-        let product = 1;
-        let safety = 0;
-        
-        // Prøv å lage et tall
-        while (safety < 100) {
-            product = 1;
-            let factors = Math.floor(Math.random() * 3) + 2; // 2 til 4 faktorer
-            if (lvl === 1) factors = Math.floor(Math.random() * 2) + 2; // 2-3 faktorer
-
-            for(let i=0; i<factors; i++) {
-                let p = primes[Math.floor(Math.random() * primes.length)];
-                product *= p;
+            // Finn 3 gale svar (tilfeldige andre ord fra databasen)
+            let wrongAnswers = [];
+            while(wrongAnswers.length < 3) {
+                const randomWrong = wordDatabase[Math.floor(Math.random() * wordDatabase.length)];
+                const wrongWord = randomWrong[currentMode];
+                // Sjekk at vi ikke velger riktig svar eller duplikater
+                if(wrongWord !== correctAnswer && !wrongAnswers.includes(wrongWord)) {
+                    wrongAnswers.push(wrongWord);
+                }
             }
-            
-            // Sjekk om tallet er innenfor grensen, og ikke for enkelt (unngå rene primtall som svar)
-            if (product <= maxVal && product > 4 && !primes.includes(product)) {
-                break;
+
+            // Bland riktig svar med gale svar
+            let options = [...wrongAnswers, correctAnswer];
+            options.sort(() => Math.random() - 0.5); // Random shuffle
+
+            // Tegn opp knappene
+            const container = document.getElementById('options-container');
+            container.innerHTML = ''; // Tøm gamle knapper
+
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'btn';
+                btn.innerText = opt;
+                btn.onclick = () => checkAnswer(opt, correctAnswer, btn);
+                container.appendChild(btn);
+            });
+        }
+
+        // Funksjon for å sjekke svar
+        function checkAnswer(selected, correct, btnElement) {
+            // Deaktiver alle knapper så man ikke kan trykke to ganger
+            const allBtns = document.querySelectorAll('#options-container .btn');
+            allBtns.forEach(b => b.disabled = true);
+
+            if (selected === correct) {
+                // RIKTIG SVAR
+                btnElement.classList.add('correct');
+                score += 10;
+                
+                // Level opp for hvert 50. poeng
+                if (score > 0 && score % 50 === 0) {
+                    level++;
+                    alert("Gratulerer! Du har nådd Level " + level + "!");
+                }
+                
+                setTimeout(nextQuestion, 1000); // Vent 1 sekund før neste
+            } else {
+                // GALT SVAR
+                btnElement.classList.add('wrong');
+                // Marker det som var riktig for læringseffekt
+                allBtns.forEach(b => {
+                    if(b.innerText === correct) b.classList.add('correct');
+                });
+                
+                setTimeout(nextQuestion, 2000); // Vent 2 sekunder for å se feilen
             }
-            safety++;
+            updateStats();
         }
-        if (product === 1 || primes.includes(product)) return 12; // Fallback
-        return product;
-    }
 
-    function generateComplexQuest(target) {
-        // Vi har svaret (f.eks. 20). Vi må lage et spørsmål der svaret blir 20.
-        // Typer: 'percent', 'fraction', 'decimal'
-        const types = ['percent', 'fraction', 'decimal'];
-        const type = types[Math.floor(Math.random() * types.length)];
-
-        if (type === 'percent') {
-            // Eks: Target 20. Lag "50% av 40" eller "25% av 80" eller "10% av 200"
-            const percs = [10, 20, 25, 50];
-            const p = percs[Math.floor(Math.random() * percs.length)];
-            const total = (target * 100) / p; 
-            
-            // Sjekk at total er et heltall (hvis ikke, fallback til vanlig tekst)
-            if (Number.isInteger(total)) {
-                return `Lag ${p}% av ${total}`;
-            }
+        function updateStats() {
+            document.getElementById('score-display').innerText = "Poeng: " + score;
+            document.getElementById('level-display').innerText = "Level: " + level;
         }
-        else if (type === 'fraction') {
-            // Eks: Target 20. Lag "1/2 av 40" eller "1/3 av 60"
-            const denoms = [2, 3, 4, 5, 10];
-            const d = denoms[Math.floor(Math.random() * denoms.length)];
-            const total = target * d;
-            return `Lag 1/${d} av ${total}`;
+
+        function goToMenu() {
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('menu-screen').classList.remove('hidden');
         }
-        else if (type === 'decimal') {
-            // Eks: Target 20. Lag "0.5 * 40"
-            // Vi gjenbruker brøk-logikken visuelt
-            const opts = [{val:0.5, mul:2}, {val:0.25, mul:4}, {val:0.1, mul:10}];
-            const o = opts[Math.floor(Math.random() * opts.length)];
-            const total = target * o.mul;
-            return `Regn ut: ${o.val} • ${total}`;
-        }
-        
-        // Fallback hvis matten ble rar
-        return "Lag tallet " + target;
-    }
-
-    // --- INTERAKSJON ---
-
-    function addIngredient(p) {
-        currentBrew *= p;
-        updateCauldron();
-    }
-
-    function clearCauldron() {
-        currentBrew = 1;
-        updateCauldron();
-        document.getElementById('feedback-msg').innerText = "";
-        document.getElementById('liquid').style.backgroundColor = "#2ecc71";
-    }
-
-    function updateCauldron() {
-        const el = document.getElementById('current-brew');
-        el.innerText = currentBrew;
-        
-        if (currentBrew > targetNumber) {
-            el.style.color = "#e74c3c";
-            document.getElementById('liquid').style.backgroundColor = "#c0392b";
-        } else {
-            el.style.color = "white";
-        }
-    }
-
-    function submitBrew() {
-        if (currentBrew === targetNumber) {
-            // RIKTIG
-            let reward = 20 + (currentLevel * 5); // Mer XP på høyere level
-            addXP(reward);
-            
-            document.getElementById('feedback-msg').innerText = "✨ Riktig! +" + reward + " XP";
-            document.getElementById('feedback-msg').style.color = "#2ecc71";
-            document.getElementById('liquid').style.backgroundColor = "#f1c40f";
-            
-            questionsAnswered++;
-            setTimeout(newQuest, 1500);
-        } else {
-            // FEIL
-            document.getElementById('feedback-msg').innerText = "💥 Feil. Du har " + currentBrew;
-            document.getElementById('feedback-msg').style.color = "#e74c3c";
-        }
-    }
-
-    // --- LEVEL UP LOGIKK ---
-
-    function addXP(amount) {
-        let oldLevel = currentLevel;
-        totalXP += amount;
-        
-        // Lagre
-        localStorage.setItem('alkymi_journey_xp', totalXP);
-        
-        calculateLevel();
-
-        if (currentLevel > oldLevel) {
-            triggerLevelUp(currentLevel);
-        }
-    }
-
-    function triggerLevelUp(lvl) {
-        let msg = "";
-        let icon = "🎉";
-        
-        if (lvl === 2) { msg = "Du har låst opp tallet 5!"; icon = "🔓 5"; }
-        else if (lvl === 4) { msg = "Du har låst opp tallet 7!"; icon = "🔓 7"; }
-        else if (lvl === 6) { msg = "Mester-modus aktivert! (Brøk & Prosent)"; icon = "🧠"; }
-        else { msg = "Oppgavene blir vanskeligere..."; }
-
-        document.getElementById('new-level-num').innerText = lvl;
-        document.getElementById('unlock-message').innerHTML = `<div class="unlock-icon">${icon}</div>${msg}`;
-        document.getElementById('levelup-overlay').style.display = 'flex';
-    }
-
-    function closeLevelUp() {
-        document.getElementById('levelup-overlay').style.display = 'none';
-        configureIngredients(); // Sørg for at nye knapper vises med en gang
-    }
-
-    function endRound() {
-        switchScreen('end-screen');
-        // Vis hvor mye XP de fikk denne økten (forskjellen fra start kan regnes ut, men her viser vi bare en hyggelig melding)
-        document.getElementById('round-score').innerText = "Godt jobba!";
-    }
-
-</script>
-
+    </script>
 </body>
 </html>
