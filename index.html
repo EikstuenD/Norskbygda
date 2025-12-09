@@ -3,21 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Norsk Ordtrening</title>
+    <title>Norsk Ordmester Pro</title>
     <style>
-        /* --- DESIGN OG UTSEENDE (CSS) --- */
+        /* --- CSS: DESIGN --- */
         :root {
-            --primary: #007AFF; /* Blå */
-            --antonym-color: #FF9500; /* Oransje */
+            --primary: #007AFF; 
+            --antonym: #FF9500;
             --bg: #F2F2F7;
             --card: #FFFFFF;
             --text: #1C1C1E;
             --correct: #34C759;
             --wrong: #FF3B30;
+            --bar-bg: #E5E5EA;
         }
 
         body {
-            font-family: -apple-system, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
@@ -25,76 +26,147 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            text-align: center;
-            /* Hindrer dobbel-tap zooming på iPad */
-            touch-action: manipulation; 
+            height: 100vh;
+            overflow: hidden;
+            touch-action: manipulation;
+            user-select: none;
         }
 
         .container {
             background: var(--card);
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            padding: 25px;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             width: 90%;
-            max-width: 600px;
+            max-width: 700px;
+            position: relative;
         }
 
-        h1 { font-size: 2rem; margin-bottom: 0.5rem; }
-        p.subtitle { color: #666; margin-bottom: 2rem; }
-
-        /* Knapper */
-        .btn {
-            display: block;
-            width: 100%;
-            padding: 20px;
-            margin: 10px 0;
-            font-size: 1.2rem;
-            font-weight: bold;
-            border: none;
-            border-radius: 15px;
-            cursor: pointer;
-            color: white;
-            transition: transform 0.1s;
-        }
-
-        .btn:active { transform: scale(0.97); }
-
-        .btn-synonym { background-color: var(--primary); }
-        .btn-antonym { background-color: var(--antonym-color); }
-        .btn-option { background-color: var(--primary); box-shadow: 0 4px 0 rgba(0,0,0,0.1); }
-        .btn-exit { background-color: #E5E5EA; color: #333; margin-top: 20px; }
-
-        /* Spill-statistikk */
-        .stats {
+        /* Topp-bar med stats */
+        .header-stats {
             display: flex;
             justify-content: space-between;
-            font-size: 1.1rem;
-            color: #888;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #8E8E93;
             margin-bottom: 20px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid #f0f0f0;
             padding-bottom: 10px;
         }
+
+        .streak-counter { color: #FF9500; opacity: 0; transition: opacity 0.3s; }
+        .streak-visible { opacity: 1; }
 
         .word-display {
             font-size: 3rem;
             font-weight: 800;
-            margin: 30px 0;
-            color: #333;
+            margin: 10px 0 30px 0;
+            color: #1C1C1E;
+            text-align: center;
         }
 
-        /* Grid for svaralternativer */
-        .options-grid {
+        /* Layout for spill-området: Knapper til venstre, Bar til høyre */
+        .game-layout {
+            display: flex;
+            gap: 20px;
+            align-items: stretch;
+        }
+
+        .options-area {
+            flex: 1;
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
         }
 
-        .hidden { display: none; }
+        /* Progress Bar (Termometer-stil) */
+        .progress-container {
+            width: 40px;
+            background-color: var(--bar-bg);
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+        }
 
-        /* Farger for rett/galt svar */
-        .correct-answer { background-color: var(--correct) !important; }
-        .wrong-answer { background-color: var(--wrong) !important; opacity: 0.5; }
+        .progress-fill {
+            width: 100%;
+            height: 0%; /* Endres med JS */
+            background: linear-gradient(to top, #34C759, #30B0C7);
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            transition: height 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-radius: 0 0 20px 20px;
+        }
+
+        /* Nivå-indikator på toppen av baren */
+        .next-level-badge {
+            position: absolute;
+            top: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: #999;
+            z-index: 2;
+        }
+
+        /* Knapper */
+        .btn {
+            padding: 25px 10px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            color: white;
+            transition: transform 0.1s;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+        }
+        .btn:active { transform: scale(0.96); box-shadow: 0 2px 0 rgba(0,0,0,0.1); }
+        
+        .btn-synonym { background-color: var(--primary); }
+        .btn-antonym { background-color: var(--antonym); }
+
+        .correct-anim { background-color: var(--correct) !important; transform: scale(1.05); }
+        .wrong-anim { background-color: var(--wrong) !important; opacity: 0.6; animation: shake 0.4s; }
+
+        /* Meny */
+        #menu-screen h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        .menu-btn { width: 100%; padding: 25px; font-size: 1.5rem; margin: 15px 0; }
+
+        /* Flytende tekst ved poeng */
+        .floating-text {
+            position: absolute;
+            font-weight: bold;
+            font-size: 1.5rem;
+            color: var(--correct);
+            pointer-events: none;
+            animation: floatUp 1s ease-out forwards;
+            z-index: 10;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-50px) scale(1.2); opacity: 0; }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* Level Up Overlay */
+        #levelup-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            z-index: 100; color: white;
+        }
+        .hidden { display: none !important; }
 
     </style>
 </head>
@@ -102,34 +174,42 @@
 
     <div id="menu-screen" class="container">
         <h1>🇳🇴 Ordmester</h1>
-        <p class="subtitle">Tren på norske ord</p>
-        
-        <button class="btn btn-synonym" onclick="startGame('synonym')">
-            Synonymer<br><span style="font-size:0.8rem; font-weight:normal;">(Lik betydning)</span>
-        </button>
-        
-        <button class="btn btn-antonym" onclick="startGame('antonym')">
-            Antonymer<br><span style="font-size:0.8rem; font-weight:normal;">(Motsetninger)</span>
-        </button>
+        <p style="color:#888; margin-bottom: 30px;">Lær synonymer og antonymer</p>
+        <button class="btn menu-btn btn-synonym" onclick="startGame('synonym')">Synonymer</button>
+        <button class="btn menu-btn btn-antonym" onclick="startGame('antonym')">Antonymer</button>
     </div>
 
     <div id="game-screen" class="container hidden">
-        <div class="stats">
+        <div class="header-stats">
             <span id="level-display">Nivå 1</span>
-            <span id="score-display">Poeng: 0</span>
+            <span id="streak-display" class="streak-counter">🔥 0</span>
+            <span id="score-display">0 p</span>
         </div>
 
-        <h3 id="question-text" style="color:#666; font-weight:normal;">Finn ordet:</h3>
+        <h3 id="question-text" style="text-align:center; color:#888; margin:0;">Finn ordet:</h3>
         <div id="current-word" class="word-display">ORDET</div>
 
-        <div id="options-container" class="options-grid">
+        <div class="game-layout">
+            <div id="options-container" class="options-area"></div>
+            
+            <div class="progress-container">
+                <span class="next-level-badge">Neste</span>
+                <div id="progress-fill" class="progress-fill"></div>
             </div>
+        </div>
 
-        <button class="btn btn-exit" onclick="goToMenu()">Avslutt</button>
+        <button class="btn" style="background:#E5E5EA; color:#333; margin-top:20px; width:100%;" onclick="goToMenu()">Avslutt</button>
+    </div>
+
+    <div id="levelup-modal" class="hidden">
+        <h1 style="font-size: 3rem;">🎉</h1>
+        <h2>Nivå opp!</h2>
+        <p>Du er nå på nivå <span id="new-level-num">2</span></p>
+        <button class="btn btn-synonym" style="width:200px; margin-top:20px;" onclick="closeLevelUp()">Fortsett</button>
     </div>
 
     <script>
-        /* --- DATABASEN (Inneholder alle ordene) --- */
+        /* --- DATABASE --- */
         const wordDatabase = [
             // ADJEKTIVER
             { ord: "Glad", synonym: "Munter", antonym: "Trist" },
@@ -216,94 +296,93 @@
             { ord: "Inngang", synonym: "Entré", antonym: "Utgang" }
         ];
 
-        /* --- SPILL LOGIKK --- */
+        /* --- LOGIKK --- */
         let currentMode = '';
         let score = 0;
         let level = 1;
-        
+        let streak = 0;
+        let pointsToNextLevel = 100; // Hvor mange poeng per level
+        let currentLevelScore = 0;   // Poeng i nåværende level
+
         function startGame(mode) {
             currentMode = mode;
             score = 0;
             level = 1;
+            streak = 0;
+            currentLevelScore = 0;
             updateStats();
             
-            // Bytt skjerm
             document.getElementById('menu-screen').classList.add('hidden');
             document.getElementById('game-screen').classList.remove('hidden');
 
-            // Sett tekst
-            const text = mode === 'synonym' ? "Finn synonymet til:" : "Finn det motsatte av:";
+            const text = mode === 'synonym' ? "Hva betyr det samme som:" : "Hva er det motsatte av:";
             document.getElementById('question-text').innerText = text;
 
             nextQuestion();
         }
 
         function nextQuestion() {
-            // Tilfeldig ord
             const randomIdx = Math.floor(Math.random() * wordDatabase.length);
             const question = wordDatabase[randomIdx];
             const correctAns = question[currentMode];
 
-            // Vis ordet
             document.getElementById('current-word').innerText = question.ord;
 
-            // Finn 3 gale svar
+            // Finn gale svar
             let options = [correctAns];
             while (options.length < 4) {
                 const randWrong = wordDatabase[Math.floor(Math.random() * wordDatabase.length)];
                 const wrongWord = randWrong[currentMode];
-                if (!options.includes(wrongWord)) {
-                    options.push(wrongWord);
-                }
+                if (!options.includes(wrongWord)) options.push(wrongWord);
             }
-
-            // Bland rekkefølgen
             options.sort(() => Math.random() - 0.5);
 
-            // Lag knappene
             const container = document.getElementById('options-container');
-            container.innerHTML = ''; // Tøm gamle knapper
+            container.innerHTML = ''; 
 
             options.forEach(opt => {
                 const btn = document.createElement('button');
-                btn.className = 'btn btn-option';
+                btn.className = 'btn';
                 btn.innerText = opt;
                 
-                // Endre farge på knapper basert på modus (Blå for synonym, Oransje for antonym)
-                if(currentMode === 'antonym') {
-                    btn.style.backgroundColor = '#FF9500';
-                } else {
-                    btn.style.backgroundColor = '#007AFF';
-                }
+                // Fargekode basert på modus
+                if(currentMode === 'synonym') btn.classList.add('btn-synonym');
+                else btn.classList.add('btn-antonym');
 
-                btn.onclick = () => checkAnswer(opt, correctAns, btn);
+                btn.onclick = (e) => checkAnswer(opt, correctAns, btn, e);
                 container.appendChild(btn);
             });
         }
 
-        function checkAnswer(selected, correct, btnElem) {
-            // Lås alle knapper
-            const allBtns = document.querySelectorAll('.btn-option');
+        function checkAnswer(selected, correct, btnElem, event) {
+            // Lås knapper
+            const allBtns = document.querySelectorAll('#options-container .btn');
             allBtns.forEach(b => b.disabled = true);
 
             if (selected === correct) {
                 // RIKTIG
-                btnElem.classList.add('correct-answer');
+                btnElem.classList.add('correct-anim');
                 score += 10;
+                currentLevelScore += 10;
+                streak++;
                 
-                if(score % 50 === 0) {
-                    level++;
-                    alert("Bra jobba! Du er nå på nivå " + level);
+                showFloatingText(event.clientX, event.clientY, getRandomPraise());
+                
+                if (currentLevelScore >= pointsToNextLevel) {
+                    levelUp();
+                } else {
+                    setTimeout(nextQuestion, 1000);
                 }
-                
-                setTimeout(nextQuestion, 1000);
             } else {
                 // FEIL
-                btnElem.classList.add('wrong-answer');
+                btnElem.classList.add('wrong-anim');
+                streak = 0;
                 
-                // Vis hva som var riktig
                 allBtns.forEach(b => {
-                    if (b.innerText === correct) b.classList.add('correct-answer');
+                    if (b.innerText === correct) {
+                        b.classList.add('correct-anim');
+                        b.style.opacity = "0.7"; // Vis hva som var rett
+                    }
                 });
 
                 setTimeout(nextQuestion, 2000);
@@ -311,9 +390,50 @@
             updateStats();
         }
 
+        function levelUp() {
+            level++;
+            currentLevelScore = 0;
+            // Vis level up modal
+            document.getElementById('new-level-num').innerText = level;
+            setTimeout(() => {
+                document.getElementById('levelup-modal').classList.remove('hidden');
+            }, 500);
+        }
+
+        function closeLevelUp() {
+            document.getElementById('levelup-modal').classList.add('hidden');
+            updateStats();
+            nextQuestion();
+        }
+
         function updateStats() {
-            document.getElementById('score-display').innerText = "Poeng: " + score;
+            document.getElementById('score-display').innerText = score + " p";
             document.getElementById('level-display').innerText = "Nivå " + level;
+            
+            // Oppdater streak
+            const streakElem = document.getElementById('streak-display');
+            streakElem.innerText = "🔥 " + streak;
+            if(streak > 1) streakElem.classList.add('streak-visible');
+            else streakElem.classList.remove('streak-visible');
+
+            // Oppdater progress bar
+            const percentage = (currentLevelScore / pointsToNextLevel) * 100;
+            document.getElementById('progress-fill').style.height = percentage + "%";
+        }
+
+        function showFloatingText(x, y, text) {
+            const el = document.createElement('div');
+            el.className = 'floating-text';
+            el.innerText = text;
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 1000);
+        }
+
+        function getRandomPraise() {
+            const words = ["Bra!", "Riktig!", "Supert!", "Godt!", "Fantastisk!", "Perfekt!"];
+            return words[Math.floor(Math.random() * words.length)];
         }
 
         function goToMenu() {
